@@ -49,6 +49,7 @@ class VocabularyGame:
         self.options = []
         self.feedback = ""
         self.feedback_timer = 0
+        self.waiting_for_next = False
         
         # Vocabulary data
         self.vocabulary = vocabulary
@@ -89,6 +90,8 @@ class VocabularyGame:
         else:
             self.feedback = f"Wrong! Correct answer: {self.correct_answer}"
             self.feedback_timer = 120  # Show feedback for 2 seconds
+        
+        self.waiting_for_next = True
             
     def draw_menu(self):
         """Draw the main menu screen"""
@@ -166,6 +169,11 @@ class VocabularyGame:
             self.screen.blit(feedback_text, feedback_rect)
             self.feedback_timer -= 1
             
+            # Load next question when feedback timer expires
+            if self.feedback_timer == 0 and self.waiting_for_next:
+                self.waiting_for_next = False
+                self.new_question()
+            
         return option_rects
         
     def draw_game_over(self):
@@ -230,11 +238,6 @@ class VocabularyGame:
                         for i, rect in enumerate(clickable_rects):
                             if rect.collidepoint(mouse_pos):
                                 self.check_answer(self.options[i])
-                                pygame.time.wait(500)  # Brief pause to show feedback
-                                if self.feedback_timer > 0:
-                                    # Wait for feedback to be visible
-                                    pygame.time.wait(1000)
-                                self.new_question()
                                 break
                                 
                 elif self.game_state == "game_over":
