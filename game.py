@@ -36,6 +36,10 @@ class VocabularyGame:
         self.option_font = pygame.font.Font(None, 36)
         self.score_font = pygame.font.Font(None, 32)
         
+        # Timing constants (in frames at 60 FPS)
+        self.FEEDBACK_DURATION_CORRECT = 60  # 1 second
+        self.FEEDBACK_DURATION_WRONG = 120  # 2 seconds
+        
         # Game state
         self.clock = pygame.time.Clock()
         self.running = True
@@ -86,10 +90,10 @@ class VocabularyGame:
         if selected_answer == self.correct_answer:
             self.score += 1
             self.feedback = "Correct!"
-            self.feedback_timer = 60  # Show feedback for 60 frames (1 second at 60 FPS)
+            self.feedback_timer = self.FEEDBACK_DURATION_CORRECT
         else:
             self.feedback = f"Wrong! Correct answer: {self.correct_answer}"
-            self.feedback_timer = 120  # Show feedback for 2 seconds
+            self.feedback_timer = self.FEEDBACK_DURATION_WRONG
         
         self.waiting_for_next = True
             
