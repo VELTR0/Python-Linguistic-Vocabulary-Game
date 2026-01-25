@@ -1,6 +1,8 @@
 import pygame
 import pygame_menu
+import random
 import PraiseOrHaze
+
 
 pygame.init()
 
@@ -55,10 +57,12 @@ def startGame(current_gamemode, screen, menu, mytheme):
             
             
             # TODO: 
+            Games = [PraiseOrHaze]
+            
             InGame = False
             if InGame == False:
-                PraiseOrHaze.startPraise(screen)
-                pass
+                ChosenGame = random.choice(Games)
+                ChosenGame.startPraise(screen)
             else:
                 pass
         
