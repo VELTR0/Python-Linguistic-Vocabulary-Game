@@ -1,40 +1,35 @@
 import pygame
-import time
+import pygame_menu
 pygame.init()
 
 
 # Settings
+
+
+def set_difficulty(value, difficulty):
+    # Do the job here !
+    pass
+
+def start_the_game():
+    # Do the job here !
+    pass
+
+# Screen setup
 screen = pygame.display.set_mode((1100,500),0,32)
 pygame.display.set_caption("Learning Urdu")
 
+# Menu Setup
+menu = pygame_menu.Menu('Welcome', 400, 300, theme=pygame_menu.themes.THEME_BLUE)
 
-# Music
-# music = pygame.mixer.music.load("Sounds/Music.mp3")
-# pygame.mixer.music.play(-1)
-
-
-# Bakcground Image
-# background_image = pygame.image.load("Graphics/Background/background.png")
-
-
-def redrawGameWindow():
-    pygame.display.update()
+menu.add.text_input('Name :', default='John Doe')
+menu.add.selector('Difficulty :', [('Hard', 1), ('Easy', 2)], onchange=set_difficulty)
+menu.add.button('Play', start_the_game)
+menu.add.button('Quit', pygame_menu.events.EXIT)
 
 
-clock = pygame.time.Clock()
-gameRunning = True 
 
-
-# Game Loop
-while gameRunning:
-    clock.tick(60)
-    keys = pygame.key.get_pressed()     # Checks pressed keys
-    redrawGameWindow()                  # Updates the display every frame   
-    #pygame.time.delay(5)                # Adds a small delay to the game loop
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            gameRunning = False
-pygame.quit()
+# Main loop
+menu.mainloop(screen)
 
 
 
