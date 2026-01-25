@@ -62,7 +62,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
             InGame = False
             if InGame == False:
                 ChosenGame = random.choice(Games)
-                ChosenGame.startPraise(screen)
+                ChosenGame.startGame(screen)
             else:
                 pass
         
