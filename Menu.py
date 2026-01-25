@@ -16,7 +16,7 @@ def set_gamemode(value, gamemode):
     
 
 def start_the_game():
-    startGame(current_gamemode)
+    Game.startGame(current_gamemode)
     pass
 
 # Screen setup
