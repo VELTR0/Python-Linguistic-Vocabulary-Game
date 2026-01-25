@@ -58,7 +58,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
             
             # TODO: 
             Games = [PraiseOrHaze]
-            
+
             InGame = False
             if InGame == False:
                 ChosenGame = random.choice(Games)
