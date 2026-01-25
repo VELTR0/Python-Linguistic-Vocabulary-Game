@@ -182,8 +182,6 @@ def pickRandomWords():
             false_option = next(opt for opt in all_options if opt != correct_word and opt not in options.values())
             options[position] = false_option
 
-    print(f"Urdu: {correct_urdu}, Correct ({word_type}): {correct_word}, Position: {correct_position}")
-    print(f"Options: {options}")
     return correct_urdu, correct_english, correct_position, options, word_type
 
 
@@ -198,11 +196,9 @@ def checkAnswer(pressed_position, correct_position):
 
 def corectAnswerSelected(position):
     correct_sound.play()
-    print("Correct!")
     return True, position
 
 
 def wrongAnswerSelected():
     wrong_sound.play()
-    print("Wrong!")
     return True

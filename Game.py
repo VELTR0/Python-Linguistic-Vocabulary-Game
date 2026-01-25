@@ -3,6 +3,7 @@ import pygame_menu
 import random
 import PraiseOrHaze
 import QuickieQuiz
+import HogansAlley
 
 
 pygame.init()
@@ -61,7 +62,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
             
             
             # TODO: 
-            Games = [PraiseOrHaze, QuickieQuiz]
+            Games = [ HogansAlley, QuickieQuiz, PraiseOrHaze ]
 
             
             if InGame == False:
