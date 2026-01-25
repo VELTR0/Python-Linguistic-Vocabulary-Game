@@ -1,10 +1,12 @@
 import pygame
 import pygame_menu
+import PraiseOrHaze
 
 pygame.init()
 
 def startGame(current_gamemode, screen, menu, mytheme):
-    pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    # pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    pygame.display.set_mode((1280, 720))
     pygame.display.set_caption("Game 1")
 
 
@@ -26,6 +28,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
         paused = False
         pause_menu.disable()
         menu.enable()
+        pygame.display.set_mode((800, 500))
     
     pause_menu.add.button('Continue', resume_game)
     pause_menu.add.button('Back to Main Menu', quit_to_menu)
@@ -50,7 +53,14 @@ def startGame(current_gamemode, screen, menu, mytheme):
         else:
             screen.fill((0, 0, 0))
             
+            
             # TODO: 
+            InGame = False
+            if InGame == False:
+                PraiseOrHaze.startPraise(screen)
+                pass
+            else:
+                pass
         
         pygame.display.flip()
         clock.tick(60)

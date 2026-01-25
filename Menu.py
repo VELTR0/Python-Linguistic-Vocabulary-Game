@@ -20,7 +20,7 @@ def start_the_game():
     Game.startGame(current_gamemode, screen, menu, mytheme)
 
 # Screen setup
-screen = pygame.display.set_mode((1100,500),0,32)
+screen = pygame.display.set_mode((800,500),0,32)
 pygame.display.set_caption("Learning Urdu")
 
 # Theme
