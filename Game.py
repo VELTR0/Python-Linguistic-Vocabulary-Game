@@ -2,6 +2,7 @@ import pygame
 import pygame_menu
 import random
 import PraiseOrHaze
+import QuickieQuiz
 
 
 pygame.init()
@@ -17,6 +18,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
     
     game_running = True
     paused = False
+    InGame = False
     
     def resume_game():
         nonlocal paused
@@ -30,6 +32,8 @@ def startGame(current_gamemode, screen, menu, mytheme):
         paused = False
         pause_menu.disable()
         menu.enable()
+        nonlocal InGame
+        InGame = False
         pygame.display.set_mode((800, 500))
     
     pause_menu.add.button('Continue', resume_game)
@@ -57,12 +61,13 @@ def startGame(current_gamemode, screen, menu, mytheme):
             
             
             # TODO: 
-            Games = [PraiseOrHaze]
+            Games = [PraiseOrHaze, QuickieQuiz]
 
-            InGame = False
+            
             if InGame == False:
                 ChosenGame = random.choice(Games)
                 ChosenGame.startGame(screen)
+                InGame = True
             else:
                 pass
         
