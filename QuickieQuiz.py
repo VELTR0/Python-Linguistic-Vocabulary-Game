@@ -11,5 +11,4 @@ def startGame(screen):
         for event in events:
             if event.type == pygame.QUIT:
                 game_running = False
-    pygame.display.update()
-    pass
+        pygame.display.update()
