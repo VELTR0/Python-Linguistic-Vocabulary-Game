@@ -41,12 +41,3 @@ menu.add.button('Quit', pygame_menu.events.EXIT)
 
 # Main loop
 menu.mainloop(screen)
-
-
-
-
-
-
-
-
-
