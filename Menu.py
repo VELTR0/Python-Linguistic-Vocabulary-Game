@@ -17,7 +17,7 @@ def set_gamemode(value, gamemode):
 
 def start_the_game():
     menu.disable()
-    Game.startGame(current_gamemode, screen)
+    Game.startGame(current_gamemode, screen, menu, mytheme)
 
 # Screen setup
 screen = pygame.display.set_mode((1100,500),0,32)
