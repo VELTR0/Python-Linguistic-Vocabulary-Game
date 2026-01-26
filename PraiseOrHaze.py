@@ -18,7 +18,7 @@ def load_sprites():
 def startGame(screen):
     load_sprites()
     game_running = True
-    screen.fill((0, 0, 0))
+    screen.fill((255, 255, 255))
     while game_running:
         events = pygame.event.get()
         for event in events:
@@ -27,7 +27,8 @@ def startGame(screen):
 
         font = SpriteFont()
 
-        question = font.render_outlined("Hello, du alter schuh, was denkst du kommt als nächste? das nächste wort ich penis!?=", text_color=(255, 0, 0), outline_color=(0,0,0), outline_size=1, scale=1)
+        question = font.render("Hello, du alter schuh, was denkst du kommt als nächste? das nächste wort ich penis!?=", color=((255, 255, 255), (0, 255, 0)))
+        question = pygame.transform.scale_by(question, 2)
 
         text_pos = question.get_rect(center=(640, 360))
         screen.blit(question, text_pos)

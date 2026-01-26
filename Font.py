@@ -12,7 +12,7 @@ class SpriteFont:
         self.trim = trim
         self.symbols = {}
         self.height = 0
-        row_bands = self._find_row_bands()
+        row_bands = self.find_row_bands()
 
         # sets the symbols from font
         layout = [
@@ -25,7 +25,7 @@ class SpriteFont:
         # searches for gaps to seperate symbols
         for band_index, (y0, y1) in enumerate(row_bands):
             chars_in_row = layout[band_index]
-            symbol_rects = self._find_symbol_rects_in_band(y0, y1)
+            symbol_rects = self.find_symbol_rects_in_band(y0, y1)
 
             row_height = (y1 - y0)
             self.height = max(self.height, row_height)
@@ -99,8 +99,15 @@ class SpriteFont:
                     continue
 
                 g = symbol
-                if color is not None:
+
+                # NEU: wenn du beide Farben willst:
+                if color is not None and isinstance(color, (tuple, list)) and len(color) == 2:
+                    text_color, outline_color = color
+                    g = self.recolor_fill_and_outline(symbol, text_color, outline_color)
+                elif color is not None:
+                    # altes Verhalten (alles einfärben)
                     g = self._tint(symbol, color)
+
 
                 # Lets the Symbols allign to the bottom of the line
                 y_draw = y + (self.height - symbol.get_height())
@@ -129,7 +136,7 @@ class SpriteFont:
     def _is_bg(self, color):
         return color == self.bg
 
-    def _find_row_bands(self):
+    def find_row_bands(self):
         w, h = self.sheet.get_size()
         bands = []
         in_band = False
@@ -153,7 +160,7 @@ class SpriteFont:
 
         return bands
 
-    def _find_symbol_rects_in_band(self, y0, y1):
+    def find_symbol_rects_in_band(self, y0, y1):
         w, _ = self.sheet.get_size()
         rects = []
         in_symbol = False
@@ -190,11 +197,11 @@ class SpriteFont:
         del px
 
         if self.trim:
-            symbol = self._trim_surface_horizontal(symbol)
+            symbol = self.trim_surface_horizontal(symbol)
 
         return symbol
 
-    def _trim_surface_horizontal(self, surf: pygame.Surface):
+    def trim_surface_horizontal(self, surf: pygame.Surface):
         bbox = surf.get_bounding_rect(min_alpha=1)
         if bbox.w == 0:
             return surf
@@ -208,56 +215,26 @@ class SpriteFont:
         tinted.fill(color, special_flags=pygame.BLEND_RGBA_MULT)
         return tinted
     
-    def render_outlined(
+    def recolor_fill_and_outline(
         self,
-        text: str,
-        *,
-        text_color=(255, 255, 255),
-        outline_color=(0, 0, 0),
-        outline_size=1,
-        scale=1,
-        spacing=1,
-        line_spacing=2,
-        bg=None,
+        surf: pygame.Surface,
+        fill_color,
+        outline_color,
+        outline_src_color=(0, 0, 0),
     ):
-        base = self.render(
-            text,
-            color=text_color,
-            scale=scale,
-            spacing=spacing,
-            line_spacing=line_spacing,
-            bg=None,
-        )
+        recolored = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
 
-        w, h = base.get_size()
-        out = pygame.Surface((w + outline_size * 2, h + outline_size * 2), pygame.SRCALPHA)
+        w, h = surf.get_size()
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = surf.get_at((x, y))
+                if a == 0:
+                    continue
 
-        if bg is not None:
-            out.fill(bg)
+                if (r, g, b) == outline_src_color:
+                    recolored.set_at((x, y), (*outline_color, a))
+                else:
+                    recolored.set_at((x, y), (*fill_color, a))
 
-        # To Outline -> generates second text in background
-        offsets = [
-            (-outline_size, 0),
-            (outline_size, 0),
-            (0, -outline_size),
-            (0, outline_size),
-            (-outline_size, -outline_size),
-            (-outline_size, outline_size),
-            (outline_size, -outline_size),
-            (outline_size, outline_size),
-        ]
+        return recolored
 
-        for ox, oy in offsets:
-            outline = self.render(
-                text,
-                color=outline_color,
-                scale=scale,
-                spacing=spacing,
-                line_spacing=line_spacing,
-                bg=None,
-            )
-            out.blit(outline, (ox + outline_size, oy + outline_size))
-
-        out.blit(base, (outline_size, outline_size))
-
-        return out
