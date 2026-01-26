@@ -26,6 +26,7 @@ wrong_image =           pygame.image.load(r"Sprites\QuickieQuiz\Wrong.png")
 correct_sound =     pygame.mixer.Sound(r"Sounds/Correct.ogg")
 wrong_sound =       pygame.mixer.Sound(r"Sounds/Wrong.ogg")
 
+
 def startGame(screen):
     game_running = True
     correct_urdu = ""
@@ -41,6 +42,11 @@ def startGame(screen):
     round_start_time = pygame.time.get_ticks()
     show_urdu_display = True
     current_word_type = "english"
+
+    # Start background music (looping)
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load(r"Sounds/PenguinShuffle.ogg")
+    pygame.mixer.music.play(-1)
     
     # Scaling of all sprites
     background_scaled = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
@@ -129,6 +135,7 @@ def startGame(screen):
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
+                pygame.mixer.music.stop()
                 game_running = False
             elif event.type == pygame.KEYDOWN and not selection_made:
                 key_to_position = {pygame.K_UP: "top", pygame.K_DOWN: "bottom", pygame.K_LEFT: "left", pygame.K_RIGHT: "right"}

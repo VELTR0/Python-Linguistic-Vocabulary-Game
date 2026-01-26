@@ -62,7 +62,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
             
             
             # TODO: 
-            Games = [ HogansAlley, QuickieQuiz, PraiseOrHaze ]
+            Games = [QuickieQuiz, PraiseOrHaze, HogansAlley]
 
             
             if InGame == False:
