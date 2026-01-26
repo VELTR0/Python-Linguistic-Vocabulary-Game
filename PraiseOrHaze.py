@@ -6,7 +6,6 @@ from Font import SpriteFont
 
 pygame.init()
 
-# Sprites (werden später geladen)
 selector = None
 correct = None
 wrong = None
@@ -107,13 +106,12 @@ def startGame(screen):
                     was_correct = (selected_index == correct_index)
                     answer_time = time.time()
 
-        # Neue Frage nach 1 Sekunde
-        if answered and (time.time() - answer_time) > 1.0:
+        if answered and (time.time() - answer_time) > 0.75:
             selected_index = 0
             answered = False
             question_text, options, correct_index = build_question(vocab_pairs)
 
-        # ---------- BACKGROUND ZUERST ----------
+        # background initialsation
         w, h = screen.get_size()
         scaledW = int(w * 0.9)
         scaledH = int(h * 0.9)
@@ -121,13 +119,13 @@ def startGame(screen):
         centredB = scaledWin.get_rect(center=(w // 2, h // 2))
         screen.blit(scaledWin, centredB)
 
-        # ---------- FRAGE (GELB) ----------
+        # Question init.
         question_surface = font.render(question_text, color=(255, 255, 0))
         question_surface = pygame.transform.scale_by(question_surface, 4.5)
         qrect = question_surface.get_rect(center=(w // 2, int(h * 0.2)))
         screen.blit(question_surface, qrect)
 
-        # ---------- OPTIONEN (WEIß) ----------
+        # Options init.
         start_y = int(h * 0.45)
         spacing = int(h * 0.08)
 
@@ -138,7 +136,7 @@ def startGame(screen):
             orect = option_surface.get_rect(center=(w // 2, start_y + i * spacing))
             screen.blit(option_surface, orect)
 
-            # Selector / Correct / Wrong nur bei ausgewählter Option
+            # Selector
             if i == selected_index:
                 if not answered:
                     arrow_img = pygame.transform.scale_by(selector, 3.75)
