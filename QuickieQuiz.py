@@ -4,7 +4,7 @@ import random
 
 pygame.init()
 
-DIFFICULTY = "hard" 
+DIFFICULTY = "hard"
 WORD_TYPE = "english"
 DISPLAY_TIME = 1000
 

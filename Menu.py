@@ -21,7 +21,7 @@ def start_the_game():
     Game.startGame(current_gamemode, screen, menu, mytheme)
 
 # Screen setup
-screen = pygame.display.set_mode((800,500),0,32)
+screen = pygame.display.set_mode((1024, 768),0,32)
 pygame.display.set_caption("Learning Urdu")
 
 # Theme
@@ -31,7 +31,7 @@ mytheme.widget_font = font
 
 
 # Menu Setup
-menu = pygame_menu.Menu('Welcome', 800, 500, theme=mytheme)
+menu = pygame_menu.Menu('Welcome', 1024, 768, theme=mytheme)
 
 menu.add.text_input('PLEASE ENTER NAME :', default='')
 menu.add.selector('Gamemode :', [('<Vocabulary>', 0), ('←Grammer→', 1), ('←Test→', 2)], onchange=set_gamemode)

@@ -9,7 +9,7 @@ pygame.init()
 
 def startGame(current_gamemode, screen, menu, mytheme):
     # pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    pygame.display.set_mode((1280, 720))
+    pygame.display.set_mode((1024, 768))
     pygame.display.set_caption("Game 1")
 
 
@@ -34,7 +34,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
         menu.enable()
         nonlocal InGame
         InGame = False
-        pygame.display.set_mode((800, 500))
+        pygame.display.set_mode((1024, 768))
     
     pause_menu.add.button('Continue', resume_game)
     pause_menu.add.button('Back to Main Menu', quit_to_menu)
