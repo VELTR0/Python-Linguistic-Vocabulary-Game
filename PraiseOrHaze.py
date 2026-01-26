@@ -20,61 +20,59 @@ def load_sprites():
     wrong = pygame.image.load(r"Sprites\PraiseOrHaze\Wrong.png").convert_alpha()
 
 
-def get_all_vocab_pairsIndian():
-    """
-    Sammelt alle Vokabel-Paare aus Vocabulary.py
-    Erwartet mehrere dicts wie:
-      { "le": "take", ... }
-    """
-    pairsIndian = []
+def get_all_vocab_pairs():
+    pairs = []
 
-    # Nimm alle dict-Variablen aus Vocabulary.py (nur die, die nicht mit _ anfangen)
     for name in dir(Vocabulary):
-        # Ignoriere Python interne Attribute (die mit _ anfangen)
-        if name.startswith('_'):
+        if name.startswith("_"):
             continue
+
         value = getattr(Vocabulary, name)
+
         if isinstance(value, dict):
             for indian, english in value.items():
-                # Nur hinzufügen, wenn beide Werte Strings sind
                 if isinstance(indian, str) and isinstance(english, str):
-                    pairsIndian.append((indian, english))
+                    pairs.append((indian, english))
 
-    # Falls doppelte Einträge existieren, ist das egal
-    return pairsIndian
+    return pairs
 
-def build_question(vocab_pairsIndian):
-    """
-    Erstellt eine Frage mit 4 Auswahlmöglichkeiten.
-    Standard: Indian word -> choose correct English meaning.
-    """
-    indian, english = random.choice(vocab_pairsIndian)
+def build_question(vocab_pairs, direction=None):
+    if direction is None:
+        direction = random.choice(["indian_to_english", "english_to_indian"])
 
-    # richtige Antwort
-    correct_answer = english
+    indian, english = random.choice(vocab_pairs)
 
-    # falsche Antworten sammeln
-    all_english = list({e for _, e in vocab_pairsIndian if isinstance(e, str)})
-    all_english = [e for e in all_english if e != correct_answer]
+    if direction == "indian_to_english":
+        question_word = indian
+        correct_answer = english
+        all_answers_pool = list({e for _, e in vocab_pairs})
 
-    wrong_answers = random.sample(all_english, k=3)
+        question_text = f"{question_word} means..."
+    
+    else:
+        question_word = english
+        correct_answer = indian
+        all_answers_pool = list({i for i, _ in vocab_pairs})
+
+        question_text = f"{question_word}' means..."
+
+    # wrong awnsers
+    all_answers_pool = [a for a in all_answers_pool if a != correct_answer]
+
+    wrong_answers = random.sample(all_answers_pool, k=3)
 
     options = wrong_answers + [correct_answer]
     random.shuffle(options)
 
     correct_index = options.index(correct_answer)
 
-
-    q1 = f"{indian} means..."
-    questions = [q1]
-    question_text = random.choice(questions)
     return question_text, options, correct_index
 
 def startGame(screen):
     load_sprites()
     font = SpriteFont()
 
-    vocab_pairsIndian = get_all_vocab_pairsIndian()
+    vocab_pairs = get_all_vocab_pairs()
 
     # Controls
     selected_index = 0
@@ -82,8 +80,7 @@ def startGame(screen):
     was_correct = False
     answer_time = 0
 
-    # Erste Frage
-    question_text, options, correct_index = build_question(vocab_pairsIndian)
+    question_text, options, correct_index = build_question(vocab_pairs)
 
     game_running = True
     clock = pygame.time.Clock()
@@ -91,10 +88,9 @@ def startGame(screen):
     while game_running:
         clock.tick(60)
 
-        # Screen clear
+        # Background color
         screen.fill((248, 40, 248))
 
-        # Events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_running = False
@@ -115,7 +111,7 @@ def startGame(screen):
         if answered and (time.time() - answer_time) > 1.0:
             selected_index = 0
             answered = False
-            question_text, options, correct_index = build_question(vocab_pairsIndian)
+            question_text, options, correct_index = build_question(vocab_pairs)
 
         # ---------- BACKGROUND ZUERST ----------
         w, h = screen.get_size()
