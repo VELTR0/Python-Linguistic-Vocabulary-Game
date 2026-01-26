@@ -43,7 +43,7 @@ def startGame(screen):
     show_urdu_display = True
     current_word_type = "english"
 
-    # Start background music (looping)
+    # background music
     pygame.mixer.music.stop()
     pygame.mixer.music.load(r"Sounds/PenguinShuffle.ogg")
     pygame.mixer.music.play(-1)

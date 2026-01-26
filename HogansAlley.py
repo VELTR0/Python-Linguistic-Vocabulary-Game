@@ -5,30 +5,30 @@ import random
 pygame.init()
 
 DIFFICULTY = "hard"
-DISPLAY_TIME = 1000  # ms: prompt display and post-selection delay
-WAIT_TIME = 1800  # ms: block input for first 2 seconds of each round
+DISPLAY_TIME = 1000  
+WAIT_TIME = 1800 
 
 font_options = pygame.font.Font(None, 50)
 font_urdu_large = pygame.font.Font(None, 150)
 
 # Sprites
-background_image = pygame.image.load(r"Sprites\HogansAlley\Screen.png")
-thug1_image =      pygame.image.load(r"Sprites\HogansAlley\Thug1.png")
-thug2_image =      pygame.image.load(r"Sprites\HogansAlley\Thug2.png")
-thug3_image =      pygame.image.load(r"Sprites\HogansAlley\Thug3.png")
-woman_image =      pygame.image.load(r"Sprites\HogansAlley\Woman.png")
-policeman_image =  pygame.image.load(r"Sprites\HogansAlley\Policeman.png")
-stick_image =      pygame.image.load(r"Sprites\HogansAlley\Stick.png")
-unfolding_image =  pygame.image.load(r"Sprites\HogansAlley\Unfolding.png")
-hit_image =        pygame.image.load(r"Sprites\HogansAlley\Hit.png")
+background_image =      pygame.image.load(r"Sprites\HogansAlley\Screen.png")
+thug1_image =           pygame.image.load(r"Sprites\HogansAlley\Thug1.png")
+thug2_image =           pygame.image.load(r"Sprites\HogansAlley\Thug2.png")
+thug3_image =           pygame.image.load(r"Sprites\HogansAlley\Thug3.png")
+woman_image =           pygame.image.load(r"Sprites\HogansAlley\Woman.png")
+policeman_image =       pygame.image.load(r"Sprites\HogansAlley\Policeman.png")
+stick_image =           pygame.image.load(r"Sprites\HogansAlley\Stick.png")
+unfolding_image =       pygame.image.load(r"Sprites\HogansAlley\Unfolding.png")
+hit_image =             pygame.image.load(r"Sprites\HogansAlley\Hit.png")
 unfolding_flash_image = pygame.image.load(r"Sprites\HogansAlley\UnfoldingFlash.png")
-hit_flash_image =  pygame.image.load(r"Sprites\HogansAlley\HitFlash.png")
-crosshair_image =  pygame.image.load(r"Sprites\HogansAlley\Crosshair.png")
-wrong_image =      pygame.image.load(r"Sprites\QuickieQuiz\Wrong.png")
-barrel_mid_image =       pygame.image.load(r"Sprites\HogansAlley\BarrelMid.png")
-barrel_farleft_image =   pygame.image.load(r"Sprites\HogansAlley\BarrelFarLeft.png")
-barrel_farright_image =  pygame.image.load(r"Sprites\HogansAlley\BarrelFarRight.png")
-monitor_image =    pygame.image.load(r"Sprites\HogansAlley\Monitor.png")
+hit_flash_image =       pygame.image.load(r"Sprites\HogansAlley\HitFlash.png")
+crosshair_image =       pygame.image.load(r"Sprites\HogansAlley\Crosshair.png")
+wrong_image =           pygame.image.load(r"Sprites\QuickieQuiz\Wrong.png")
+barrel_mid_image =      pygame.image.load(r"Sprites\HogansAlley\BarrelMid.png")
+barrel_farleft_image =  pygame.image.load(r"Sprites\HogansAlley\BarrelFarLeft.png")
+barrel_farright_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarRight.png")
+monitor_image =         pygame.image.load(r"Sprites\HogansAlley\Monitor.png")
 
 # Sounds
 correct_sound = pygame.mixer.Sound(r"Sounds/Correct.ogg")
@@ -51,7 +51,7 @@ def startGame(screen):
     animation_frame_index = 0
     last_frame_time = 0
 
-    # Start background music for Hogan's Alley
+    # background music 
     pygame.mixer.music.stop()
     pygame.mixer.music.load(r"Sounds/JimmyRemix.ogg")
     pygame.mixer.music.play(-1)
