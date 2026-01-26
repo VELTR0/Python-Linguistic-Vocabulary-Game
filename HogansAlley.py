@@ -16,8 +16,8 @@ class HogansAlley(Game):
     }
     
     def __init__(self, difficulty="hard"):
-        num_words = self.WORDS_BY_DIFFICULTY.get(difficulty, 4)
-        super().__init__(difficulty, num_words)
+        super().__init__(difficulty)
+        self.num_words = self.WORDS_BY_DIFFICULTY.get(difficulty, 4)
         self.DIFFICULTY = difficulty
         self.font_options = pygame.font.Font(None, 50)
         self.font_urdu_large = pygame.font.Font(None, 150)

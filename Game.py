@@ -3,15 +3,14 @@ import pygame_menu
 import random
 import Vocabulary
 
-DIFFICULTY = "hard"
+DIFFICULTY = "easy"
 
 pygame.init()
 
 
 class Game:
-    def __init__(self, difficulty="easy", num_words=4):
+    def __init__(self, difficulty="easy"):
         self.difficulty = difficulty
-        self.num_words = num_words
         self.correct_count = 0
         self.incorrect_count = 0
         self.is_running = False
@@ -36,8 +35,10 @@ class Game:
                 pool.remove(correct_urdu)
             correct_word = correct_urdu
 
+        # Determine option count from subclass (fallback to 4 if not set)
+        option_count = getattr(self, "num_words", 4)
         # Create false options
-        false_options = random.sample(pool, self.num_words - 1)
+        false_options = random.sample(pool, option_count - 1)
         options = [correct_word] + false_options
         random.shuffle(options)
         correct_index = options.index(correct_word)
