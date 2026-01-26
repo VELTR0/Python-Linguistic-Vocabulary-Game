@@ -1,6 +1,7 @@
 import pygame
 import pygame_menu
 import Game
+from Font import SpriteFont
 pygame.init()
 
 

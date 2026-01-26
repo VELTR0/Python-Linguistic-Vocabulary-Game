@@ -61,7 +61,7 @@ def startGame(current_gamemode, screen, menu, mytheme):
             
             
             # TODO: 
-            Games = [PraiseOrHaze, QuickieQuiz]
+            Games = [PraiseOrHaze]
 
             
             if InGame == False:

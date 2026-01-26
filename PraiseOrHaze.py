@@ -1,14 +1,22 @@
 import pygame
 import Vocabulary
+from Font import SpriteFont
 
 pygame.init()
 
-# Sprites
-selector =            pygame.image.load(r"Sprites\PraiseOrHaze\Selector.png")
-correct =         pygame.image.load(r"Sprites\PraiseOrHaze\Correcto.png")
-wrong =           pygame.image.load(r"Sprites\PraiseOrHaze\Wrong.png")
+# Sprites (werden später geladen)
+selector = None
+correct = None
+wrong = None
+
+def load_sprites():
+    global selector, correct, wrong
+    selector = pygame.image.load(r"Sprites\PraiseOrHaze\Selector.png").convert_alpha()
+    correct = pygame.image.load(r"Sprites\PraiseOrHaze\Correcto.png").convert_alpha()
+    wrong = pygame.image.load(r"Sprites\PraiseOrHaze\Wrong.png").convert_alpha()
 
 def startGame(screen):
+    load_sprites()
     game_running = True
     screen.fill((0, 0, 0))
     while game_running:
@@ -17,7 +25,12 @@ def startGame(screen):
             if event.type == pygame.QUIT:
                 game_running = False
 
-        font_size = 
+        font = SpriteFont()
+
+        question = font.render_outlined("Hello, du alter schuh, was denkst du kommt als nächste? das nächste wort ich penis!?=", text_color=(255, 0, 0), outline_color=(0,0,0), outline_size=1, scale=1)
+
+        text_pos = question.get_rect(center=(640, 360))
+        screen.blit(question, text_pos)
 
             
         pygame.display.update()
