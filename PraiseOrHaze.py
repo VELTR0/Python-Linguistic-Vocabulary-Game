@@ -19,6 +19,7 @@ def load_sprites():
     correct = pygame.image.load(r"Sprites\PraiseOrHaze\Correcto.png").convert_alpha()
     wrong = pygame.image.load(r"Sprites\PraiseOrHaze\Wrong.png").convert_alpha()
 
+
 def get_all_vocab_pairsIndian():
     """
     Sammelt alle Vokabel-Paare aus Vocabulary.py
@@ -41,29 +42,6 @@ def get_all_vocab_pairsIndian():
 
     # Falls doppelte Einträge existieren, ist das egal
     return pairsIndian
-
-def get_all_vocab_pairsEnglish():
-    """
-    Sammelt alle Vokabel-Paare aus Vocabulary.py
-    Erwartet mehrere dicts wie:
-      { "le": "take", ... }
-    """
-    pairsEnglish = []
-
-    # Nimm alle dict-Variablen aus Vocabulary.py (nur die, die nicht mit _ anfangen)
-    for name in dir(Vocabulary):
-        # Ignoriere Python interne Attribute (die mit _ anfangen)
-        if name.startswith('_'):
-            continue
-        value = getattr(Vocabulary, name)
-        if isinstance(value, dict):
-            for indian, english in value.items():
-                # Nur hinzufügen, wenn beide Werte Strings sind
-                if isinstance(indian, str) and isinstance(english, str):
-                    pairsEnglish.append((indian, english))
-
-    # Falls doppelte Einträge existieren, ist das egal
-    return pairsEnglish
 
 def build_question(vocab_pairsIndian):
     """
