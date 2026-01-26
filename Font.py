@@ -100,12 +100,10 @@ class SpriteFont:
 
                 g = symbol
 
-                # NEU: wenn du beide Farben willst:
                 if color is not None and isinstance(color, (tuple, list)) and len(color) == 2:
                     text_color, outline_color = color
                     g = self.recolor_fill_and_outline(symbol, text_color, outline_color)
                 elif color is not None:
-                    # altes Verhalten (alles einfärben)
                     g = self._tint(symbol, color)
 
 
