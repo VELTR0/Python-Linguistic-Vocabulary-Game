@@ -35,8 +35,8 @@ class Game:
                 pool.remove(correct_urdu)
             correct_word = correct_urdu
 
-        # Determine option count from subclass (fallback to 4 if not set)
-        option_count = getattr(self, "num_words", 4)
+        # Define number of words baesed on difficulty
+        option_count = self.WORDS_BY_DIFFICULTY.get(self.difficulty)
         # Create false options
         false_options = random.sample(pool, option_count - 1)
         options = [correct_word] + false_options
