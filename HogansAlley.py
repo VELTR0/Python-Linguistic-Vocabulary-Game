@@ -1,4 +1,5 @@
 import pygame
+import pygame_menu
 import random
 from Game import Game
 
@@ -6,11 +7,16 @@ pygame.init()
 
 
 class HogansAlley(Game):
-    #DIFFICULTY = "hard"
     DISPLAY_TIME = 1000  
     WAIT_TIME = 1800
+    ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
+    WORDS_BY_DIFFICULTY = {
+        "easy": 2,
+        "hard": 4
+    }
     
-    def __init__(self, difficulty="hard", num_words=4):
+    def __init__(self, difficulty="hard"):
+        num_words = self.WORDS_BY_DIFFICULTY.get(difficulty, 4)
         super().__init__(difficulty, num_words)
         self.DIFFICULTY = difficulty
         self.font_options = pygame.font.Font(None, 50)
@@ -191,8 +197,6 @@ class HogansAlley(Game):
     def handle_input(self, event, selection_made, current_time, round_start_time, selected_index, n, correct_index):
         new_selected_index = selected_index
         new_selection_made = selection_made
-        new_show_correct = False
-        new_show_wrong = False
         new_last_action_time = None
         
         if event.type == pygame.KEYDOWN and not selection_made and (current_time - round_start_time) >= self.WAIT_TIME:
@@ -201,39 +205,41 @@ class HogansAlley(Game):
             elif event.key == pygame.K_RIGHT:
                 new_selected_index = min(n - 1, selected_index + 1)
             elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
-                new_show_correct, new_show_wrong = self.check_answer(selected_index, correct_index)
+                self.check_answer(selected_index, correct_index)
                 new_selection_made = True
                 new_last_action_time = current_time
         
-        return new_selected_index, new_selection_made, new_show_correct, new_show_wrong, new_last_action_time
+        return new_selected_index, new_selection_made, new_last_action_time
     
     def check_answer(self, selected_index, correct_index):
         if selected_index == correct_index:
             self.correct_sound.play()
-            self.record_correct_answer()
-            return True, False
+            self.add_correct()
         else:
             self.wrong_sound.play()
-            self.record_incorrect_answer()
-            return False, True
+            self.add_incorrect()
+        
+        # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
     
-    def start_game(self, screen):
+    def initialize_game(self, screen):
         self.is_running = True
-
-        correct_urdu = ""
-        correct_english = ""
-        options = []
-        correct_index = 0
-        selected_index = 0
-        show_correct = False
-        show_wrong = False
-        selection_made = False
-        last_action_time = 0
-        round_start_time = pygame.time.get_ticks()
-        show_urdu_display = True
-        current_word_type = "english"
-        animation_frame_index = 0
-        last_frame_time = 0
+        self.screen = screen
+        
+        # Game state
+        self.correct_urdu = ""
+        self.correct_english = ""
+        self.options = []
+        self.correct_index = 0
+        self.selected_index = 0
+        self.show_correct = False
+        self.show_wrong = False
+        self.selection_made = False
+        self.last_action_time = 0
+        self.round_start_time = pygame.time.get_ticks()
+        self.show_urdu_display = True
+        self.current_word_type = "english"
+        self.animation_frame_index = 0
+        self.last_frame_time = 0
 
         # Music
         pygame.mixer.music.stop()
@@ -242,97 +248,103 @@ class HogansAlley(Game):
 
         # Scale assets
         scaled_assets = self.scale_assets(screen)
-        background_scaled = scaled_assets['background_scaled']
-        character_scale = scaled_assets['character_scale']
-        stick_scaled = scaled_assets['stick_scaled']
-        unfolding_scaled = scaled_assets['unfolding_scaled']
-        thug_sprites = scaled_assets['thug_sprites']
-        civilian_sprites = scaled_assets['civilian_sprites']
-        crosshair_scaled = scaled_assets['crosshair_scaled']
-        wrong_scaled = scaled_assets['wrong_scaled']
-        barrel_farleft_scaled = scaled_assets['barrel_farleft_scaled']
-        barrel_farright_scaled = scaled_assets['barrel_farright_scaled']
-        barrel_mid_scaled = scaled_assets['barrel_mid_scaled']
-        monitor_scaled = scaled_assets['monitor_scaled']
+        self.background_scaled = scaled_assets['background_scaled']
+        self.character_scale = scaled_assets['character_scale']
+        self.stick_scaled = scaled_assets['stick_scaled']
+        self.unfolding_scaled = scaled_assets['unfolding_scaled']
+        self.thug_sprites = scaled_assets['thug_sprites']
+        self.civilian_sprites = scaled_assets['civilian_sprites']
+        self.crosshair_scaled = scaled_assets['crosshair_scaled']
+        self.wrong_scaled = scaled_assets['wrong_scaled']
+        self.barrel_farleft_scaled = scaled_assets['barrel_farleft_scaled']
+        self.barrel_farright_scaled = scaled_assets['barrel_farright_scaled']
+        self.barrel_mid_scaled = scaled_assets['barrel_mid_scaled']
+        self.monitor_scaled = scaled_assets['monitor_scaled']
 
-        animation_frames = [scaled_assets['hit_scaled'], unfolding_scaled, None, 
+        self.animation_frames = [scaled_assets['hit_scaled'], self.unfolding_scaled, None, 
                           scaled_assets['unfolding_flash_scaled'], scaled_assets['hit_flash_scaled'], 
-                          scaled_assets['unfolding_flash_scaled'], None, unfolding_scaled, scaled_assets['hit_scaled']]
-        frame_duration = 150
+                          scaled_assets['unfolding_flash_scaled'], None, self.unfolding_scaled, scaled_assets['hit_scaled']]
+        self.frame_duration = 150
 
         # Start first round
-        correct_urdu, correct_english, options, correct_index, current_word_type = self.pick_random_words()
-        character_sprites = self.assign_character_sprites(correct_index, len(options), thug_sprites, civilian_sprites)
-
-        while self.is_running:
-            current_time = pygame.time.get_ticks()
-            
-            # Update animations
-            animation_frame_index, last_frame_time = self.update_animations(
-                current_time, selection_made, last_frame_time, animation_frame_index, 
-                animation_frames, frame_duration
-            )
-            
-            # Handle game logic
-            show_urdu_display, new_round_needed = self.handle_game_logic(
-                current_time, round_start_time, show_urdu_display, 
-                selection_made, last_action_time
-            )
-            
-            # Start new round if needed
-            if new_round_needed:
-                correct_urdu, correct_english, options, correct_index, current_word_type = self.pick_random_words()
-                character_sprites = self.assign_character_sprites(correct_index, len(options), thug_sprites, civilian_sprites)
-                show_correct = False
-                show_wrong = False
-                selection_made = False
-                selected_index = 0
-                round_start_time = current_time
-                show_urdu_display = True
-                animation_frame_index = 0
-            
-            # Calculate positions
-            n = len(options)
-            if n == 0:
-                pygame.display.update()
-                continue
-            spacing = screen.get_width() / (n + 1)
-            y = screen.get_height() / 2
-            centers = [(spacing * (i + 1), y) for i in range(n)]
-            
-            # DIsplay word to translate
-            display_word = correct_urdu if current_word_type == "english" else correct_english
-            
-            # Rendering
-            self.render_game(
-                screen, show_urdu_display, current_time, round_start_time,
-                options, centers, y, character_scale, stick_scaled, unfolding_scaled, character_sprites,
-                selection_made, selected_index, animation_frames, animation_frame_index,
-                show_wrong, show_correct, correct_index, crosshair_scaled, wrong_scaled,
-                display_word, barrel_farleft_scaled, barrel_farright_scaled, barrel_mid_scaled,
-                background_scaled, monitor_scaled, spacing
-            )
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.mixer.music.stop()
-                    self.is_running = False
-                else:
-                    new_selected_index, new_selection_made, new_show_correct, new_show_wrong, new_last_action_time = self.handle_input(
-                        event, selection_made, current_time, round_start_time, 
-                        selected_index, n, correct_index
-                    )
-                    
-                    if new_selection_made and not selection_made:
-                        selection_made = True
-                        show_correct = new_show_correct
-                        show_wrong = new_show_wrong
-                        last_action_time = new_last_action_time
-                        animation_frame_index = 0
-                        last_frame_time = current_time
-                    
-                    selected_index = new_selected_index
-            
-            pygame.display.update()
+        self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
+        self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
+    
+    def handle_frame_input(self, events, current_time):
+        n = len(self.options)
         
+        for event in events:
+            new_selected_index, new_selection_made, new_last_action_time = self.handle_input(
+                event, self.selection_made, current_time, self.round_start_time, self.selected_index, n, self.correct_index
+            )
+            if new_selection_made and not self.selection_made:
+                self.selection_made = True
+                self.last_action_time = new_last_action_time
+                self.animation_frame_index = 0
+                self.last_frame_time = current_time
+            self.selected_index = new_selected_index
+    
+    def update_frame(self, current_time):
+        n = len(self.options)
+        
+        # Update animations
+        self.animation_frame_index, self.last_frame_time = self.update_animations(
+            current_time, self.selection_made, self.last_frame_time, self.animation_frame_index, self.animation_frames, self.frame_duration
+        )
+        
+        # Update game logic
+        self.show_urdu_display, new_round_needed = self.handle_game_logic(
+            current_time, self.round_start_time, self.show_urdu_display, self.selection_made, self.last_action_time
+        )
+        
+        # Check if answer was given and wait time passed - then end game
+        if self.selection_made and current_time - self.last_action_time >= self.ANSWER_DISPLAY_TIME:
+            self.is_running = False
+            return
+        
+        # Start new round if needed
+        if new_round_needed:
+            self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
+            self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
+            self.show_correct = False
+            self.show_wrong = False
+            self.selection_made = False
+            self.selected_index = 0
+            self.round_start_time = current_time
+            self.show_urdu_display = True
+            self.animation_frame_index = 0
+        
+        # Calculate positions
+        if n == 0:
+            return
+        
+        spacing = self.screen.get_width() / (n + 1)
+        y = self.screen.get_height() / 2
+        centers = [(spacing * (i + 1), y) for i in range(n)]
+        
+        # Display word to translate
+        display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
+        
+        # Rendering
+        self.render_game(
+            self.screen, self.show_urdu_display, current_time, self.round_start_time,
+            self.options, centers, y, self.character_scale, self.stick_scaled, self.unfolding_scaled, self.character_sprites,
+            self.selection_made, self.selected_index, self.animation_frames, self.animation_frame_index,
+            self.show_wrong, self.show_correct, self.correct_index, self.crosshair_scaled, self.wrong_scaled,
+            display_word, self.barrel_farleft_scaled, self.barrel_farright_scaled, self.barrel_mid_scaled,
+            self.background_scaled, self.monitor_scaled, spacing
+        )
+    
+    def on_pause(self):
+        pygame.mixer.music.pause()
+    
+    def on_resume(self, paused_duration):
+        # Adjust all time-based variables
+        self.round_start_time += paused_duration
+        self.last_action_time += paused_duration
+        self.last_frame_time += paused_duration
+        pygame.mixer.music.unpause()
+    
+    def start_game(self, screen, pause_menu=None):
+        self.initialize_game(screen)
         return True

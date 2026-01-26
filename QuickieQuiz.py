@@ -1,211 +1,233 @@
 import pygame
 import Vocabulary
 import random
+from Game import Game
 
 pygame.init()
 
-DIFFICULTY = "hard" 
-WORD_TYPE = "english"
-DISPLAY_TIME = 1000
 
-font_options = pygame.font.Font(None, 50)
-font_urdu_large = pygame.font.Font(None, 150)
-
-# Sprites
-background_image =      pygame.image.load(r"Sprites\QuickieQuiz\Background.png")
-dpad_image =            pygame.image.load(r"Sprites\QuickieQuiz\D-Pad.png")
-up_image =              pygame.image.load(r"Sprites\QuickieQuiz\Up.png")
-down_image =            pygame.image.load(r"Sprites\QuickieQuiz\Down.png")
-left_image =            pygame.image.load(r"Sprites\QuickieQuiz\Left.png")
-right_image =           pygame.image.load(r"Sprites\QuickieQuiz\Right.png")
-card_image =            pygame.image.load(r"Sprites\QuickieQuiz\Card.png")
-correct_image =         pygame.image.load(r"Sprites\QuickieQuiz\Correct.png")
-wrong_image =           pygame.image.load(r"Sprites\QuickieQuiz\Wrong.png")
-
-# Sounds
-correct_sound =     pygame.mixer.Sound(r"Sounds/Correct.ogg")
-wrong_sound =       pygame.mixer.Sound(r"Sounds/Wrong.ogg")
-
-
-def startGame(screen):
-    game_running = True
-    correct_urdu = ""
-    correct_english = ""
-    correct_position = ""
-    options = {}
-    show_correct = False
-    show_wrong = False
-    selection_made = False
-    correct_display_position = None
-    last_action_time = 0
-    selected_direction = None
-    round_start_time = pygame.time.get_ticks()
-    show_urdu_display = True
-    current_word_type = "english"
-
-    # background music
-    pygame.mixer.music.stop()
-    pygame.mixer.music.load(r"Sounds/PenguinShuffle.ogg")
-    pygame.mixer.music.play(-1)
-    
-    # Scaling of all sprites
-    background_scaled = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
-    
-    dpad_size = screen.get_height() // 6
-    dpad_scaled = pygame.transform.scale(dpad_image, (dpad_size, dpad_size))
-    
-    direction_sprites = {
-        "top": pygame.transform.scale(up_image, (dpad_size, dpad_size)),
-        "bottom": pygame.transform.scale(down_image, (dpad_size, dpad_size)),
-        "left": pygame.transform.scale(left_image, (dpad_size, dpad_size)),
-        "right": pygame.transform.scale(right_image, (dpad_size, dpad_size))
+class QuickieQuiz(Game):
+    DISPLAY_TIME = 1000
+    ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
+    WORDS_BY_DIFFICULTY = {
+        "easy": 2,
+        "hard": 4
     }
     
-    card_height = screen.get_height() // 5
-    card_width = int(card_height * card_image.get_width() / card_image.get_height())
-    card_scaled = pygame.transform.scale(card_image, (card_width, card_height))
-    correct_scaled = pygame.transform.scale(correct_image, (card_width, card_height))
-    wrong_scaled = pygame.transform.scale(wrong_image, (card_width, card_height))
+    def __init__(self, difficulty="hard"):
+        num_words = self.WORDS_BY_DIFFICULTY.get(difficulty, 4)
+        super().__init__(difficulty, num_words)
+        self.font_options = pygame.font.Font(None, 50)
+        self.font_urdu_large = pygame.font.Font(None, 150)
+        self.load_sprites()
+        self.correct_sound = pygame.mixer.Sound(r"Sounds/Correct.ogg")
+        self.wrong_sound = pygame.mixer.Sound(r"Sounds/Wrong.ogg")
     
-    # Positions
-    position_coords = {
-        "top": (screen.get_width()//2, 100),
-        "bottom": (screen.get_width()//2, screen.get_height()-100),
-        "left": (100, screen.get_height()//2),
-        "right": (screen.get_width()-100, screen.get_height()//2)
-    }
+    def load_sprites(self):
+        self.background_image = pygame.image.load(r"Sprites\QuickieQuiz\Background.png")
+        self.dpad_image = pygame.image.load(r"Sprites\QuickieQuiz\D-Pad.png")
+        self.up_image = pygame.image.load(r"Sprites\QuickieQuiz\Up.png")
+        self.down_image = pygame.image.load(r"Sprites\QuickieQuiz\Down.png")
+        self.left_image = pygame.image.load(r"Sprites\QuickieQuiz\Left.png")
+        self.right_image = pygame.image.load(r"Sprites\QuickieQuiz\Right.png")
+        self.card_image = pygame.image.load(r"Sprites\QuickieQuiz\Card.png")
+        self.correct_image = pygame.image.load(r"Sprites\QuickieQuiz\Correct.png")
+        self.wrong_image = pygame.image.load(r"Sprites\QuickieQuiz\Wrong.png")
     
-    # Start first round
-    correct_urdu, correct_english, correct_position, options, current_word_type = pickRandomWords()
+    def scale_assets(self, screen):
+        assets = {}
+        assets['background_scaled'] = pygame.transform.scale(self.background_image, (screen.get_width(), screen.get_height()))
+        
+        dpad_size = screen.get_height() // 6
+        assets['dpad_scaled'] = pygame.transform.scale(self.dpad_image, (dpad_size, dpad_size))
+        
+        assets['direction_sprites'] = {
+            "top": pygame.transform.scale(self.up_image, (dpad_size, dpad_size)),
+            "bottom": pygame.transform.scale(self.down_image, (dpad_size, dpad_size)),
+            "left": pygame.transform.scale(self.left_image, (dpad_size, dpad_size)),
+            "right": pygame.transform.scale(self.right_image, (dpad_size, dpad_size))
+        }
+        
+        card_height = screen.get_height() // 5
+        card_width = int(card_height * self.card_image.get_width() / self.card_image.get_height())
+        assets['card_scaled'] = pygame.transform.scale(self.card_image, (card_width, card_height))
+        assets['correct_scaled'] = pygame.transform.scale(self.correct_image, (card_width, card_height))
+        assets['wrong_scaled'] = pygame.transform.scale(self.wrong_image, (card_width, card_height))
+        
+        return assets
     
-    while game_running:
-        # Timer logic
-        current_time = pygame.time.get_ticks()
-        if show_urdu_display and current_time - round_start_time >= DISPLAY_TIME:
-            show_urdu_display = False
+    def pick_random_words_quickiequiz(self):
+        wordpair = random.choice(list(Vocabulary.lightVerbs.items()))
+        correct_urdu = wordpair[0]
+        correct_english = wordpair[1]
         
-        if selection_made and current_time - last_action_time >= DISPLAY_TIME:
-            correct_urdu, correct_english, correct_position, options, current_word_type = pickRandomWords()
-            show_correct = False
-            show_wrong = False
-            selection_made = False
-            selected_direction = None
-            round_start_time = current_time
-            show_urdu_display = True
-        
-        # Rendering
-        screen.blit(background_scaled, (0, 0))
-        
-        # Center sprite
-        dpad_center = (screen.get_width()//2, screen.get_height()//2)
-        if selected_direction:
-            screen.blit(direction_sprites[selected_direction], direction_sprites[selected_direction].get_rect(center=dpad_center))
+        # Difficulty settings
+        if self.difficulty == "easy":
+            available_positions = ["top", "bottom"]
+            num_false_options = 1
         else:
-            screen.blit(dpad_scaled, dpad_scaled.get_rect(center=dpad_center))
+            available_positions = ["top", "bottom", "left", "right"]
+            num_false_options = 3
         
-        # Render option cards
-        for position, word in options.items():
-            x, y = position_coords[position]
-            
-            # Card
-            card_rect = card_scaled.get_rect(center=(x, y))
-            screen.blit(card_scaled, card_rect)
-            
-            # Text
-            text_surface = font_options.render(word, True, (0, 0, 0))
-            text_rect = text_surface.get_rect(center=(x, y))
-            screen.blit(text_surface, text_rect)
-            
-            # Correct sprite
-            if show_correct and correct_display_position == position:
-                screen.blit(correct_scaled, card_rect)
-            
-            # Wrong sprite
-            if show_wrong and correct_position != position:
-                screen.blit(wrong_scaled, card_rect)
+        # English or Urdu
+        word_type = random.choice(["english", "urdu"])
+        if word_type == "english":
+            false_options_list = list(Vocabulary.lightVerbs.values())
+            false_options_list.remove(correct_english)
+            false_options = random.sample(false_options_list, num_false_options)
+            correct_word = correct_english
+        else:
+            false_options_list = list(Vocabulary.lightVerbs.keys())
+            false_options_list.remove(correct_urdu)
+            false_options = random.sample(false_options_list, num_false_options)
+            correct_word = correct_urdu
         
-        # Correct Word Display
-        if show_urdu_display:
-            display_word = correct_urdu if current_word_type == "english" else correct_english
-            text = f" {display_word}" # Add String here to display 
-            large_surface = font_urdu_large.render(text, True, (0, 0, 0))
-            large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
-            screen.blit(large_surface, large_rect)
+        # Placing of the words
+        correct_position = random.choice(available_positions)
+        options = {}
+        all_options = [correct_word] + false_options
+        random.shuffle(all_options)
+        for i, position in enumerate(available_positions):
+            if position == correct_position:
+                options[position] = correct_word
+            else:
+                false_option = next(opt for opt in all_options if opt != correct_word and opt not in options.values())
+                options[position] = false_option
+
+        return correct_urdu, correct_english, correct_position, options, word_type
+    
+    def check_answer(self, pressed_position, correct_position):
+        if pressed_position == correct_position:
+            self.correct_sound.play()
+            self.add_correct()
+        else:
+            self.wrong_sound.play()
+            self.add_incorrect()
         
-        events = pygame.event.get()
+        # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
+    
+    def initialize_game(self, screen):
+        self.is_running = True
+        self.screen = screen
+        
+        # Game state
+        self.correct_urdu = ""
+        self.correct_english = ""
+        self.correct_position = ""
+        self.options = {}
+        self.show_correct = False
+        self.show_wrong = False
+        self.selection_made = False
+        self.correct_display_position = None
+        self.last_action_time = 0
+        self.selected_direction = None
+        self.round_start_time = pygame.time.get_ticks()
+        self.show_urdu_display = True
+        self.current_word_type = "english"
+
+        # Music
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(r"Sounds/PenguinShuffle.ogg")
+        pygame.mixer.music.play(-1)
+        
+        # Scale assets
+        scaled_assets = self.scale_assets(screen)
+        self.background_scaled = scaled_assets['background_scaled']
+        self.dpad_scaled = scaled_assets['dpad_scaled']
+        self.direction_sprites = scaled_assets['direction_sprites']
+        self.card_scaled = scaled_assets['card_scaled']
+        self.correct_scaled = scaled_assets['correct_scaled']
+        self.wrong_scaled = scaled_assets['wrong_scaled']
+        
+        # Positions
+        self.position_coords = {
+            "top": (screen.get_width()//2, 100),
+            "bottom": (screen.get_width()//2, screen.get_height()-100),
+            "left": (100, screen.get_height()//2),
+            "right": (screen.get_width()-100, screen.get_height()//2)
+        }
+        
+        # Start first round
+        self.correct_urdu, self.correct_english, self.correct_position, self.options, self.current_word_type = self.pick_random_words_quickiequiz()
+    
+    def handle_frame_input(self, events, current_time):
         for event in events:
-            if event.type == pygame.QUIT:
-                pygame.mixer.music.stop()
-                game_running = False
-            elif event.type == pygame.KEYDOWN and not selection_made:
+            if event.type == pygame.KEYDOWN and not self.selection_made:
                 key_to_position = {pygame.K_UP: "top", pygame.K_DOWN: "bottom", pygame.K_LEFT: "left", pygame.K_RIGHT: "right"}
                 pressed_position = key_to_position.get(event.key)
                 
-                if pressed_position and pressed_position in options:
-                    show_correct, correct_display_position, show_wrong = checkAnswer(pressed_position, correct_position)
-                    selected_direction = pressed_position
-                    selection_made = True
-                    last_action_time = current_time
+                if pressed_position and pressed_position in self.options:
+                    self.check_answer(pressed_position, self.correct_position)
+                    self.selected_direction = pressed_position
+                    self.selection_made = True
+                    self.last_action_time = current_time
+    
+    def update_frame(self, current_time):
+        # Check if answer was given and wait time passed - then end game
+        if self.selection_made and current_time - self.last_action_time >= self.ANSWER_DISPLAY_TIME:
+            self.is_running = False
+            return
         
-        pygame.display.update()
-
-
-# This function starts a new round
-def pickRandomWords():
-    wordpair = random.choice(list(Vocabulary.lightVerbs.items()))
-    correct_urdu = wordpair[0]
-    correct_english = wordpair[1]
-    
-    # Difficulty settings
-    if DIFFICULTY == "easy":
-        available_positions = ["top", "bottom"]
-        num_false_options = 1
-    else:
-        available_positions = ["top", "bottom", "left", "right"]
-        num_false_options = 3
-    
-    # English or Urdu
-    word_type = random.choice(["english", "urdu"])
-    if word_type == "english":
-        false_options_list = list(Vocabulary.lightVerbs.values())
-        false_options_list.remove(correct_english)
-        false_options = random.sample(false_options_list, num_false_options)
-        correct_word = correct_english
-    else: 
-        false_options_list = list(Vocabulary.lightVerbs.keys())
-        false_options_list.remove(correct_urdu)
-        false_options = random.sample(false_options_list, num_false_options)
-        correct_word = correct_urdu
-    
-    # Placing of the words 
-    correct_position = random.choice(available_positions)
-    options = {}
-    all_options = [correct_word] + false_options
-    random.shuffle(all_options)
-    for i, position in enumerate(available_positions):
-        if position == correct_position:
-            options[position] = correct_word
+        # Timer logic
+        if self.show_urdu_display and current_time - self.round_start_time >= self.DISPLAY_TIME:
+            self.show_urdu_display = False
+        
+        if self.selection_made and current_time - self.last_action_time >= self.DISPLAY_TIME:
+            self.correct_urdu, self.correct_english, self.correct_position, self.options, self.current_word_type = self.pick_random_words_quickiequiz()
+            self.show_correct = False
+            self.show_wrong = False
+            self.selection_made = False
+            self.selected_direction = None
+            self.round_start_time = current_time
+            self.show_urdu_display = True
+        
+        # Rendering
+        self.screen.blit(self.background_scaled, (0, 0))
+        
+        # Center sprite
+        dpad_center = (self.screen.get_width()//2, self.screen.get_height()//2)
+        if self.selected_direction:
+            self.screen.blit(self.direction_sprites[self.selected_direction], self.direction_sprites[self.selected_direction].get_rect(center=dpad_center))
         else:
-            false_option = next(opt for opt in all_options if opt != correct_word and opt not in options.values())
-            options[position] = false_option
-
-    return correct_urdu, correct_english, correct_position, options, word_type
-
-
-def checkAnswer(pressed_position, correct_position):
-    if pressed_position == correct_position:
-        show_correct, correct_display_position = corectAnswerSelected(pressed_position)
-        return show_correct, correct_display_position, False
-    else:
-        show_wrong = wrongAnswerSelected()
-        return False, None, show_wrong
-
-
-def corectAnswerSelected(position):
-    correct_sound.play()
-    return True, position
-
-
-def wrongAnswerSelected():
-    wrong_sound.play()
-    return True
+            self.screen.blit(self.dpad_scaled, self.dpad_scaled.get_rect(center=dpad_center))
+        
+        # Render option cards
+        for position, word in self.options.items():
+            x, y = self.position_coords[position]
+            
+            # Card
+            card_rect = self.card_scaled.get_rect(center=(x, y))
+            self.screen.blit(self.card_scaled, card_rect)
+            
+            # Text
+            text_surface = self.font_options.render(word, True, (0, 0, 0))
+            text_rect = text_surface.get_rect(center=(x, y))
+            self.screen.blit(text_surface, text_rect)
+            
+            # Correct sprite
+            if self.show_correct and self.correct_display_position == position:
+                self.screen.blit(self.correct_scaled, card_rect)
+            
+            # Wrong sprite
+            if self.show_wrong and self.correct_position != position:
+                self.screen.blit(self.wrong_scaled, card_rect)
+        
+        # Correct Word Display
+        if self.show_urdu_display:
+            display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
+            text = f" {display_word}"
+            large_surface = self.font_urdu_large.render(text, True, (0, 0, 0))
+            large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
+            self.screen.blit(large_surface, large_rect)
+    
+    def on_pause(self):
+        pygame.mixer.music.pause()
+    
+    def on_resume(self, paused_duration):
+        self.round_start_time += paused_duration
+        self.last_action_time += paused_duration
+        pygame.mixer.music.unpause()
+    
+    def start_game(self, screen, pause_menu=None):
+        self.initialize_game(screen)
+        return True
