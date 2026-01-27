@@ -4,7 +4,7 @@ import random
 from Game import Game
 
 pygame.init()
-
+# TODO agentive/non agentive
 
 class HogansAlley(Game):
     DISPLAY_TIME = 1000  
@@ -21,8 +21,6 @@ class HogansAlley(Game):
         self.font_options = pygame.font.Font(None, 50)
         self.font_urdu_large = pygame.font.Font(None, 150)
         self.load_sprites()
-        self.correct_sound = pygame.mixer.Sound(r"Sounds/Correct.ogg")
-        self.wrong_sound = pygame.mixer.Sound(r"Sounds/Wrong.ogg")
         self.scaled_assets = None
     
     def load_sprites(self):
@@ -209,14 +207,6 @@ class HogansAlley(Game):
                 new_last_action_time = current_time
         
         return new_selected_index, new_selection_made, new_last_action_time
-    
-    def check_answer(self, selected_index, correct_index):
-        if selected_index == correct_index:
-            self.correct_sound.play()
-            self.add_correct()
-        else:
-            self.wrong_sound.play()
-            self.add_incorrect()
         
         # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
     
@@ -269,6 +259,7 @@ class HogansAlley(Game):
         self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
         self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
     
+    # Blocks Player input
     def handle_frame_input(self, events, current_time):
         n = len(self.options)
         

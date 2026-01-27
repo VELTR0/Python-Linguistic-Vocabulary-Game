@@ -19,8 +19,6 @@ class QuickieQuiz(Game):
         self.font_options = pygame.font.Font(None, 50)
         self.font_urdu_large = pygame.font.Font(None, 150)
         self.load_sprites()
-        self.correct_sound = pygame.mixer.Sound(r"Sounds/Correct.ogg")
-        self.wrong_sound = pygame.mixer.Sound(r"Sounds/Wrong.ogg")
     
     def load_sprites(self):
         self.background_image = pygame.image.load(r"Sprites\QuickieQuiz\Background.png")
@@ -95,14 +93,6 @@ class QuickieQuiz(Game):
 
         return correct_urdu, correct_english, correct_position, options, word_type
     
-    def check_answer(self, pressed_position, correct_position):
-        if pressed_position == correct_position:
-            self.correct_sound.play()
-            self.add_correct()
-        else:
-            self.wrong_sound.play()
-            self.add_incorrect()
-        
         # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
     
     def initialize_game(self, screen):

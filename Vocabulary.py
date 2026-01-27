@@ -8,6 +8,15 @@ lightVerbs = {
     "ut.h": "rise"
 }
 
+lightVerbsAgentive = {
+    "le": "agentive",
+    "de": "agentive",
+    "a": "non-agentive",
+    "ja": "non-agentive",
+    "bEt.h": "non-agentive",
+    "ut.h": "non-agentive"
+}
+
 # For Task 2
 agentive_verbs = {
     "le": "take",
@@ -23,11 +32,16 @@ agentive_verbs = {
 
 non_agentive_verbs = {
     "a": "come",
-    "ja": "go",
     "ut.h": "rise",
     "par.": "fall"
 }
 
 ambiguous_verbs = {
-    "bEt.h": "sit"
+    "ja": "go"
 }
+# Agentiove verbs can be combined with every verb except "ja"
+# Non-agentive verbs can only be combined with non-agentive verbs and "ja"
+
+#Task 1: Vocabs + Agentive/non Agentive
+#Task 2: Which combinations possible
+#Task 3: Test

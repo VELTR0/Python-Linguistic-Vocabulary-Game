@@ -17,3 +17,9 @@ The inspiration to our game comes mostly from a Microgame collection from the ga
 ### Pascal
 - This
 - Thas
+
+
+
+
+
+Refactored code: abstract classes: CheckAnswer
