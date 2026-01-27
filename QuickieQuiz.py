@@ -181,7 +181,7 @@ class QuickieQuiz(Game):
             
             # Text
             text_surface = self.font_options.render(word, color =(255, 255, 255))
-            text_surface = pygame.transform.scale_by(text_surface, 3.5)
+            text_surface = pygame.transform.scale_by(text_surface, 3.0)
             text_rect = text_surface.get_rect(center=(x, y))
             self.screen.blit(text_surface, text_rect)
             
