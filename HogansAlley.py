@@ -1,6 +1,7 @@
 import pygame
 import pygame_menu
 import random
+from Font import SpriteFont
 from Game import Game
 
 pygame.init()
@@ -10,16 +11,11 @@ class HogansAlley(Game):
     DISPLAY_TIME = 1000  
     WAIT_TIME = 1800
     ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
-    WORDS_BY_DIFFICULTY = {
-        "easy": 2,
-        "hard": 4
-    }
     
-    def __init__(self, difficulty="hard"):
-        super().__init__(difficulty)
-        self.DIFFICULTY = difficulty
-        self.font_options = pygame.font.Font(None, 50)
-        self.font_urdu_large = pygame.font.Font(None, 150)
+    def __init__(self, gamemode=1, playerName="Player"):
+        super().__init__(gamemode, playerName=playerName)
+        self.GAMEMODE = gamemode
+        self.font_options = SpriteFont()
         self.load_sprites()
         self.scaled_assets = None
     
@@ -146,7 +142,8 @@ class HogansAlley(Game):
                 else:
                     char_rect = character_sprites[i].get_rect(center=(cx, cy-20))
                     screen.blit(character_sprites[i], char_rect)
-                    text_surface = self.font_options.render(word, True, (0, 0, 0))
+                    text_surface = self.font_options.render(word, color=(255, 255, 255))
+                    text_surface = pygame.transform.scale_by(text_surface, 2.5)
                     text_rect = text_surface.get_rect(center=(cx, cy))
                     screen.blit(text_surface, text_rect)
                 
@@ -163,8 +160,9 @@ class HogansAlley(Game):
                     screen.blit(crosshair_scaled, crosshair_rect)
 
         if show_urdu_display:
-            prompt_surface = self.font_urdu_large.render(f"Translate: {display_word}", True, (0, 0, 0))
-            prompt_rect = prompt_surface.get_rect(center=(screen.get_width()/2, screen.get_height()/4))
+            prompt_surface = self.font_options.render(("The Thug is... " + display_word), color=(255, 255, 0))
+            prompt_surface = pygame.transform.scale_by(prompt_surface, 5)
+            prompt_rect = prompt_surface.get_rect(center=(screen.get_width()/2, screen.get_height()/3))
             screen.blit(prompt_surface, prompt_rect)
 
         screen.blit(monitor_scaled, (0, 0))
@@ -334,7 +332,3 @@ class HogansAlley(Game):
         self.last_action_time += paused_duration
         self.last_frame_time += paused_duration
         pygame.mixer.music.unpause()
-    
-    def start_game(self, screen, pause_menu=None):
-        self.initialize_game(screen)
-        return True

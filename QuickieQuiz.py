@@ -2,6 +2,7 @@ import pygame
 import Vocabulary
 import random
 from Game import Game
+from Font import SpriteFont
 
 pygame.init()
 
@@ -9,15 +10,10 @@ pygame.init()
 class QuickieQuiz(Game):
     DISPLAY_TIME = 1000
     ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
-    WORDS_BY_DIFFICULTY = {
-        "easy": 2,
-        "hard": 4
-    }
     
-    def __init__(self, difficulty="hard"):
-        super().__init__(difficulty)
-        self.font_options = pygame.font.Font(None, 50)
-        self.font_urdu_large = pygame.font.Font(None, 150)
+    def __init__(self, gamemode=1, playerName="Player"):
+        super().__init__(gamemode, playerName=playerName)
+        self.font_options = SpriteFont()
         self.load_sprites()
     
     def load_sprites(self):
@@ -58,13 +54,8 @@ class QuickieQuiz(Game):
         correct_urdu = wordpair[0]
         correct_english = wordpair[1]
         
-        # Difficulty settings
-        if self.difficulty == "easy":
-            available_positions = ["top", "bottom"]
-            num_false_options = 1
-        else:
-            available_positions = ["top", "bottom", "left", "right"]
-            num_false_options = 3
+        available_positions = ["top", "bottom", "left", "right"]
+        num_false_options = 3
         
         # English or Urdu
         word_type = random.choice(["english", "urdu"])
@@ -189,9 +180,11 @@ class QuickieQuiz(Game):
             self.screen.blit(self.card_scaled, card_rect)
             
             # Text
-            text_surface = self.font_options.render(word, True, (0, 0, 0))
+            text_surface = self.font_options.render(word, color =(255, 255, 255))
+            text_surface = pygame.transform.scale_by(text_surface, 3.5)
             text_rect = text_surface.get_rect(center=(x, y))
             self.screen.blit(text_surface, text_rect)
+            
             
             # Correct sprite
             if self.show_correct and self.correct_display_position == position:
@@ -205,7 +198,8 @@ class QuickieQuiz(Game):
         if self.show_urdu_display:
             display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
             text = f" {display_word}"
-            large_surface = self.font_urdu_large.render(text, True, (0, 0, 0))
+            large_surface = self.font_options.render((self.playerName + " is " + text + "..."), color=(255, 255, 0))
+            large_surface = pygame.transform.scale_by(large_surface, 5)
             large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
             self.screen.blit(large_surface, large_rect)
     
@@ -216,7 +210,3 @@ class QuickieQuiz(Game):
         self.round_start_time += paused_duration
         self.last_action_time += paused_duration
         pygame.mixer.music.unpause()
-    
-    def start_game(self, screen, pause_menu=None):
-        self.initialize_game(screen)
-        return True

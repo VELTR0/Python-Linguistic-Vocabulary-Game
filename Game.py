@@ -10,11 +10,12 @@ wrong_sound = pygame.mixer.Sound(r"Sounds/Wrong.ogg")
 
 # TODO Übergang zwischen Gamse animieren
 class Game:
-    def __init__(self, difficulty="easy", num_words=4):
-        self.difficulty = difficulty
+    def __init__(self, gamemode=1, num_words=4, playerName="Player"):
+        self.gamemode = gamemode
         self.num_words = num_words
         self.score = 0
         self.is_running = False
+        self.playerName = playerName
     
     def pick_random_words(self):
         wordpair = random.choice(list(Vocabulary.lightVerbs.items()))
@@ -50,6 +51,9 @@ class Game:
     def fail(self):
         self.score -= 100
         print("Score:", self.score)
+
+    def load_sprites(self):
+        pass
     
     # Blocks or enables Player input as long as a bool is True
     def handle_frame_input(self, events, input_blocked):
@@ -82,7 +86,33 @@ class Game:
             wrong_sound.play()
             self.fail()
 
-def startGame(gamemode, screen, menu, mytheme):
+    # Blocks Player input for a number of seconds but lets animation run
+    def wait_for_seconds(self, seconds, end_game_after=False):
+        start_time = pygame.time.get_ticks()
+        end_time = start_time + (seconds * 1000)
+        clock = pygame.time.Clock()
+        
+        while pygame.time.get_ticks() < end_time:
+            current_time = pygame.time.get_ticks()
+            
+            # Process events but ignore input
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.is_running = False
+                    return
+            
+            # Continue rendering and animations
+            self.update_frame(current_time)
+            pygame.display.flip()
+            clock.tick(60)
+        
+        # End game after wait if specified
+        if end_game_after:
+            self.is_running = False
+
+
+def startGame(gamemode, screen, menu, mytheme, playerName):
     import HogansAlley
     import PraiseOrHaze
     import QuickieQuiz
@@ -119,9 +149,9 @@ def startGame(gamemode, screen, menu, mytheme):
     
     clock = pygame.time.Clock()
     
-    Games = [HogansAlley.HogansAlley, QuickieQuiz.QuickieQuiz]
+    Games = [HogansAlley.HogansAlley, PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz]
     GameClass = random.choice(Games)
-    game_instance = GameClass(gamemode)
+    game_instance = GameClass(gamemode, playerName=playerName)
     game_instance.initialize_game(screen)
     
     paused = False
