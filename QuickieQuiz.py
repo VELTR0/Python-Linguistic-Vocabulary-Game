@@ -9,7 +9,7 @@ pygame.init()
 
 class QuickieQuiz(Game):
     DISPLAY_TIME = 1000
-    ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
+    ANSWER_DISPLAY_TIME = 1000
     
     def __init__(self, gamemode=1, playerName="Player"):
         super().__init__(gamemode, playerName=playerName)
@@ -82,6 +82,7 @@ class QuickieQuiz(Game):
                 false_option = next(opt for opt in all_options if opt != correct_word and opt not in options.values())
                 options[position] = false_option
 
+        self.BombTimer(4)
         return correct_urdu, correct_english, correct_position, options, word_type
     
         # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
@@ -143,6 +144,14 @@ class QuickieQuiz(Game):
                     self.last_action_time = current_time
     
     def update_frame(self, current_time):
+        # Check if timer ran out (and not already answered)
+        if not self.selection_made and self._bomb_timer_just_ended:
+            self.check_answer(-1, self.correct_position)
+            self.show_wrong = True
+            self.selection_made = True
+            self.last_action_time = current_time
+            self._bomb_timer_just_ended = False
+        
         # Check if answer was given and wait time passed - then end game
         if self.selection_made and current_time - self.last_action_time >= self.ANSWER_DISPLAY_TIME:
             self.is_running = False
@@ -202,11 +211,12 @@ class QuickieQuiz(Game):
             large_surface = pygame.transform.scale_by(large_surface, 5)
             large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
             self.screen.blit(large_surface, large_rect)
+        
+        # Draw timer on top of everything
+        self.bomb_logic(current_time)
     
     def on_pause(self):
         pygame.mixer.music.pause()
     
     def on_resume(self, paused_duration):
-        self.round_start_time += paused_duration
-        self.last_action_time += paused_duration
-        pygame.mixer.music.unpause()
+        super().on_resume(paused_duration)

@@ -8,6 +8,7 @@ pygame.init()
 correct_sound = pygame.mixer.Sound(r"Sounds/Correct.ogg")
 wrong_sound = pygame.mixer.Sound(r"Sounds/Wrong.ogg")
 
+
 # TODO Übergang zwischen Gamse animieren
 class Game:
     def __init__(self, gamemode=1, num_words=4, playerName="Player"):
@@ -16,6 +17,84 @@ class Game:
         self.score = 0
         self.is_running = False
         self.playerName = playerName
+        self.t0 = None
+        self.t1 = None
+        self.t2 = None
+        self.t3 = None
+        self.t4 = None
+        self.t5 = None
+        self.t6 = None
+        self.t7 = None
+        self.t8 = None
+        self._bomb_timer_active = False
+        self._bomb_timer_start_ms = 0
+        self._bomb_timer_total_ms = 0
+        self._bomb_timer_ticks = 9
+        self._bomb_timer_just_ended = False
+        self._timer_sound_3 = None
+        self._timer_sound_2 = None
+        self._timer_sound_1 = None
+        self._last_tick_played = None
+
+    def load_bombs(self):
+        self.t0 = pygame.image.load(r"Sprites\Timer\boom.png").convert_alpha()
+        self.t1 = pygame.image.load(r"Sprites\Timer\1.png").convert_alpha()
+        self.t2 = pygame.image.load(r"Sprites\Timer\2.png").convert_alpha()
+        self.t3 = pygame.image.load(r"Sprites\Timer\3.png").convert_alpha()
+        self.t4 = pygame.image.load(r"Sprites\Timer\4.png").convert_alpha()
+        self.t5 = pygame.image.load(r"Sprites\Timer\5.png").convert_alpha()
+        self.t6 = pygame.image.load(r"Sprites\Timer\6.png").convert_alpha()
+        self.t7 = pygame.image.load(r"Sprites\Timer\7.png").convert_alpha()
+        self.t8 = pygame.image.load(r"Sprites\Timer\8.png").convert_alpha()
+        self._timer_sound_3 = pygame.mixer.Sound(r"Sprites\Timer\Timer3.ogg")
+        self._timer_sound_2 = pygame.mixer.Sound(r"Sprites\Timer\Timer2.ogg")
+        self._timer_sound_1 = pygame.mixer.Sound(r"Sprites\Timer\Timer1.ogg")
+
+    def BombTimer(self, seconds):
+        self.load_bombs()
+        self._bomb_timer_active = True
+        self._bomb_timer_start_ms = pygame.time.get_ticks()
+        self._bomb_timer_total_ms = max(1, int(seconds * 1000))
+        self._last_tick_played = None
+
+    # bomb timer logic and rendering
+    def bomb_logic(self, current_time):
+        if not self._bomb_timer_active:
+            return
+
+        elapsed = current_time - self._bomb_timer_start_ms
+        total_ms = self._bomb_timer_total_ms
+
+        step_ms = total_ms / float(self._bomb_timer_ticks)
+
+        step_index = int(elapsed / step_ms)
+        tick_value = max(0, min(8, 8 - step_index))
+
+        timer_pics = getattr(self, "t" + str(tick_value))
+        
+        # For sounds on t1,t2 and t3
+        if tick_value != self._last_tick_played:
+            if tick_value == 3:
+                self._timer_sound_3.play()
+            elif tick_value == 2:
+                self._timer_sound_2.play()
+            elif tick_value == 1:
+                self._timer_sound_1.play()
+            self._last_tick_played = tick_value
+        
+        # Bomb scaler
+        timer_pics = pygame.transform.scale_by(timer_pics, 4.0)
+
+        # Bomb positioning
+        w, h = self.screen.get_size()
+        x = 0
+        y = h - timer_pics.get_height()
+        self.screen.blit(timer_pics, (x, y))
+
+        if elapsed >= total_ms:
+            self._bomb_timer_active = False
+            self._bomb_timer_just_ended = True
+
     
     def pick_random_words(self):
         wordpair = random.choice(list(Vocabulary.lightVerbs.items()))
@@ -62,11 +141,11 @@ class Game:
         #     return
         # input
 
-    # Renders game (Take care of Render order)
+    # Renders game
     def update_frame(self, current_time):
         pass
     
-    # Initializes the game with the given screen (Set variables per game)
+    # Initializes the game with the given screen
     def initialize_game(self, screen):
         pass
 
@@ -74,8 +153,11 @@ class Game:
     def on_pause(self):
         pygame.mixer.music.pause()
 
-    # Called when the game is resumed (Adjust this)
+    # Called when the game is resumed
     def on_resume(self, paused_duration):
+        if self._bomb_timer_active:
+            self._bomb_timer_start_ms += paused_duration
+
         pygame.mixer.music.unpause()
 
     def check_answer(self, selected_index, correct_index):
@@ -124,7 +206,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     game_running = True
     paused = False
-    InGame = False
+    pause_start_time = 0
     game_instance = None
     
     def resume_game():
@@ -133,12 +215,11 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
         pause_menu.disable()
     
     def quit_to_menu():
-        nonlocal game_running, paused, game_instance, InGame
+        nonlocal game_running, paused, game_instance
         game_running = False
         paused = False
         pause_menu.disable()
         menu.enable()
-        InGame = False
         pygame.display.set_mode((800, 500))
         if game_instance is not None:
             game_instance.is_running = False
@@ -149,25 +230,25 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    Games = [HogansAlley.HogansAlley, PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz]
+    Games = [PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz, HogansAlley.HogansAlley]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     game_instance.initialize_game(screen)
     
-    paused = False
-    pause_start_time = 0
+    total_score = game_instance.score
     
     while game_running:
         current_time = pygame.time.get_ticks()
         
-        #ANIMATION HERE
         events = pygame.event.get()
         
         # Check if current game ended - start a new one
         if not game_instance.is_running:
+            total_score = game_instance.score  # Keep the score
             GameClass = random.choice(Games)
             # Starts the game with selected gamemode
-            game_instance = GameClass(gamemode)
+            game_instance = GameClass(gamemode, playerName=playerName)
+            game_instance.score = total_score  # Transfer score to new instance
             game_instance.initialize_game(screen)
         
         for event in events:

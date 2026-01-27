@@ -11,6 +11,7 @@ class HogansAlley(Game):
     DISPLAY_TIME = 1000  
     WAIT_TIME = 1800
     ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
+    BOMB_TIMER_SECONDS = 6
     
     def __init__(self, gamemode=1, playerName="Player"):
         super().__init__(gamemode, playerName=playerName)
@@ -206,7 +207,6 @@ class HogansAlley(Game):
         
         return new_selected_index, new_selection_made, new_last_action_time
         
-        # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
     
     def initialize_game(self, screen):
         self.is_running = True
@@ -256,6 +256,7 @@ class HogansAlley(Game):
         # Start first round
         self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
         self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
+        self.BombTimer(self.BOMB_TIMER_SECONDS)
     
     # Blocks Player input
     def handle_frame_input(self, events, current_time):
@@ -274,6 +275,14 @@ class HogansAlley(Game):
     
     def update_frame(self, current_time):
         n = len(self.options)
+        
+        # Check if timer ran out (and not already answered)
+        if not self.selection_made and self._bomb_timer_just_ended:
+            self.check_answer(-1, self.correct_index)
+            self.show_wrong = True
+            self.selection_made = True
+            self.last_action_time = current_time
+            self._bomb_timer_just_ended = False
         
         # Update animations
         self.animation_frame_index, self.last_frame_time = self.update_animations(
@@ -298,6 +307,7 @@ class HogansAlley(Game):
             self.show_wrong = False
             self.selection_made = False
             self.selected_index = 0
+            self.BombTimer(self.BOMB_TIMER_SECONDS)
             self.round_start_time = current_time
             self.show_urdu_display = True
             self.animation_frame_index = 0
@@ -322,6 +332,9 @@ class HogansAlley(Game):
             display_word, self.barrel_farleft_scaled, self.barrel_farright_scaled, self.barrel_mid_scaled,
             self.background_scaled, self.monitor_scaled, spacing
         )
+        
+        # Draw timer on top of everything
+        self.bomb_logic(current_time)
     
     def on_pause(self):
         pygame.mixer.music.pause()

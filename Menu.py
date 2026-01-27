@@ -1,12 +1,8 @@
 import pygame
 import pygame_menu
-import Game
+from Game import startGame
 
 pygame.init()
-
-
-# Settings
-
 
 
 # Sets the selected gamemode in the menu 
@@ -20,7 +16,7 @@ def start_the_game():
     player_name = name.get_value()  
     menu.disable()
     player_name = "Player" if player_name == '' else player_name
-    Game.startGame(current_gamemode, screen, menu, mytheme, player_name )
+    startGame(current_gamemode, screen, menu, mytheme, player_name )
 
 # Screen setup
 screen = pygame.display.set_mode((1024, 768),0,32)
