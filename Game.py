@@ -2,14 +2,12 @@
 import pygame_menu
 import random
 import Vocabulary
+from CurtainTransition import CurtainTransition
 
 pygame.init()
 
 correct_sound = pygame.mixer.Sound(r"Sounds/Correct.ogg")
 wrong_sound = pygame.mixer.Sound(r"Sounds/Wrong.ogg")
-
-
-# TODO Übergang zwischen Gamse animieren
 class Game:
     def __init__(self, gamemode=1, num_words=4, playerName="Player"):
         self.gamemode = gamemode
@@ -17,6 +15,7 @@ class Game:
         self.score = 0
         self.is_running = False
         self.playerName = playerName
+        self.game_actually_started = False  # Flag to indicate if the curtain animation is complete
         self.t0 = None
         self.t1 = None
         self.t2 = None
@@ -59,7 +58,7 @@ class Game:
 
     # bomb timer logic and rendering
     def bomb_logic(self, current_time):
-        if not self._bomb_timer_active:
+        if not self._bomb_timer_active or not self.game_actually_started:
             return
 
         elapsed = current_time - self._bomb_timer_start_ms
@@ -208,6 +207,15 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     paused = False
     pause_start_time = 0
     game_instance = None
+    curtain = CurtainTransition()
+    
+    # Game states
+    WAITING_FOR_OPENING = 0
+    PLAYING = 1
+    WAITING_FOR_CLOSING = 2
+    
+    game_state = WAITING_FOR_OPENING
+    transition_start_time = 0
     
     def resume_game():
         nonlocal paused
@@ -233,44 +241,110 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     Games = [PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz, HogansAlley.HogansAlley]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
-    game_instance.initialize_game(screen)
+    # DO NOT initialize game yet - wait until curtain animation is complete
     
-    total_score = game_instance.score
+    total_score = 0
+    last_score = 0
+    music_start_time = None  # Track when to start music (0.2s after animation complete)
+    
+    # Start the opening curtain animation
+    curtain.start_opening_animation(screen)
     
     while game_running:
         current_time = pygame.time.get_ticks()
         
         events = pygame.event.get()
         
-        # Check if current game ended - start a new one
-        if not game_instance.is_running:
-            total_score = game_instance.score  # Keep the score
-            GameClass = random.choice(Games)
-            # Starts the game with selected gamemode
-            game_instance = GameClass(gamemode, playerName=playerName)
-            game_instance.score = total_score  # Transfer score to new instance
-            game_instance.initialize_game(screen)
-        
-        for event in events:
-            if event.type == pygame.QUIT:
-                game_running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                paused = True
-                pause_start_time = pygame.time.get_ticks()
-                game_instance.on_pause()
-        
-        if paused:
-            pause_menu.enable()
-            pause_menu.mainloop(screen, disable_loop=False)
-            pause_menu.disable()
-            paused_duration = pygame.time.get_ticks() - pause_start_time
-            game_instance.on_resume(paused_duration)
-            paused = False
-        else:
-            # Pass events to game instance for input handling
-            game_instance.handle_frame_input(events, current_time)
-            # Update game logic and render
+        # Handle game state transitions
+        if game_state == WAITING_FOR_OPENING:
+            # Update curtain animation
+            curtain.update(current_time)
+            
+            # Initialize the game on first frame of this state
+            if not game_instance.is_running:  # Only initialize if not already running
+                game_instance.initialize_game(screen)
+                # Pause music immediately after initialization
+                pygame.mixer.music.pause()
+                music_start_time = current_time + 200  # Start music 0.2 seconds later
+            
+            # Render the game in the background (but without timer running)
             game_instance.update_frame(current_time)
+            
+            # Render curtain overlay on top
+            curtain.render(screen)
+            
+            # Check if opening animation is complete
+            if curtain.is_animation_complete():
+                # Reset the bomb timer start time to NOW (not from initialization time)
+                if game_instance._bomb_timer_active:
+                    game_instance._bomb_timer_start_ms = pygame.time.get_ticks()
+                
+                # Start music if the time has come
+                if music_start_time and current_time >= music_start_time:
+                    pygame.mixer.music.unpause()
+                    music_start_time = None  # Only play once
+                
+                # Signal that the game has truly started - bomb timer can now run
+                game_instance.game_actually_started = True
+                game_state = PLAYING
+        
+        elif game_state == PLAYING:
+            # Check if current game ended - start closing animation
+            if not game_instance.is_running:
+                total_score = game_instance.score  # Keep the score
+                game_instance.game_actually_started = False  # Disable bomb timer during transition
+                
+                # Determine if the last round was successful (score increased)
+                is_success = game_instance.score > last_score
+                last_score = game_instance.score
+                
+                # Pause the game music
+                pygame.mixer.music.pause()
+                
+                game_state = WAITING_FOR_CLOSING
+                curtain.start_closing_animation(screen, is_success=is_success)
+                continue
+            
+            for event in events:
+                if event.type == pygame.QUIT:
+                    game_running = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    paused = True
+                    pause_start_time = pygame.time.get_ticks()
+                    game_instance.on_pause()
+            
+            if paused:
+                pause_menu.enable()
+                pause_menu.mainloop(screen, disable_loop=False)
+                pause_menu.disable()
+                paused_duration = pygame.time.get_ticks() - pause_start_time
+                game_instance.on_resume(paused_duration)
+                paused = False
+            else:
+                # Pass events to game instance for input handling
+                game_instance.handle_frame_input(events, current_time)
+                # Update game logic and render
+                game_instance.update_frame(current_time)
+        
+        elif game_state == WAITING_FOR_CLOSING:
+            # Update curtain closing animation
+            curtain.update(current_time)
+            
+            # Render the game in the background (but without timer running)
+            game_instance.update_frame(current_time)
+            
+            # Render curtain overlay on top
+            curtain.render(screen)
+            
+            # Check if closing animation is complete
+            if curtain.is_animation_complete():
+                # Start a new game
+                GameClass = random.choice(Games)
+                game_instance = GameClass(gamemode, playerName=playerName)
+                game_instance.score = total_score  # Transfer score to new instance
+                game_instance.initialize_game(screen)
+                game_state = WAITING_FOR_OPENING
+                curtain.start_opening_animation(screen)
         
         pygame.display.flip()
         clock.tick(60)
