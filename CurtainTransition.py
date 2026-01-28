@@ -102,7 +102,7 @@ class CurtainTransition:
         elapsed = current_time - self.animation_start_time
         
         # Animation duration is 1.667 seconds (1s closed + 0.667s open for opening, or vice versa for closing)
-        if elapsed >= 1550:
+        if elapsed >= 1750:
             self.is_animating = False
             return False
         

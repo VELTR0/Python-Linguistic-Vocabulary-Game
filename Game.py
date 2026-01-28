@@ -265,7 +265,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
                 game_instance.initialize_game(screen)
                 # Pause music immediately after initialization
                 pygame.mixer.music.pause()
-                music_start_time = current_time + 200  # Start music 0.2 seconds later
+                music_start_time = current_time + 400  # Start music 0.2 seconds later
             
             # Render the game in the background (but without timer running)
             game_instance.update_frame(current_time)
