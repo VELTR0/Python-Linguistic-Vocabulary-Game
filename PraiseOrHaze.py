@@ -31,6 +31,16 @@ class PraiseOrHaze(Game):
         self.options = []
         self.correct_index = 0
         self.load_sprites()
+        self.example_text = ""
+        self.exampleSentences = {
+            "le": 'She will "{w}" a photo.',
+            "de": 'Please "{w}" me the book.',
+            "a":  'They will "{w}" home late.',
+            "ja": 'We will "{w}" to school now.',
+            "bEt.h": 'He will "{w}" on the chair.',
+            "ut.h": 'The sun will "{w}" soon.'
+        }
+
 
     def load_sprites(self):
         self.Background = pygame.image.load(r"Sprites\Backgrounds\Praise_or_Haze.png").convert_alpha()
@@ -40,28 +50,38 @@ class PraiseOrHaze(Game):
 
     def build_question(self):
         correct_urdu, correct_english, options, correct_index, word_type = self.pick_random_words()
-        if word_type == "english":
-            question_word = correct_english
-            mapped_options = []
-            for opt in options:
-                urdu_match = None
-                for urdu, eng in Vocabulary.lightVerbs.items():
-                    if eng == opt:
-                        urdu_match = urdu
-                        break
-                mapped_options.append(urdu_match)
-            question_text = f"{question_word} means..."
-        else:
-            question_word = correct_urdu
-            mapped_options = []
-            for opt in options:
-                eng_match = Vocabulary.lightVerbs.get(opt, opt)
-                mapped_options.append(eng_match)
-            question_text = f"{question_word} means..."
+
+        # ALWAYS ask in URDU
+        question_text = f"{correct_urdu} means..."
+
+        # ALWAYS show ENGLISH as selectable options
+        mapped_options = []
+        for opt in options:
+            # If opt is Urdu key -> map to English
+            if opt in Vocabulary.lightVerbs:
+                mapped_options.append(Vocabulary.lightVerbs[opt])
+            else:
+                # If opt already English (or unknown), keep it
+                mapped_options.append(opt)
 
         self.BombTimer(4)
-        return question_text, mapped_options, correct_index
+        example_text = self.build_example_sentence(correct_urdu)
+
+        return question_text, example_text, mapped_options, correct_index
+
+
     
+    def build_example_sentence(self, urdu_word: str) -> str:
+        template = self.exampleSentences.get(urdu_word)
+
+        if template:
+            try:
+                return template.format(w=urdu_word)
+            except Exception:
+                return template.replace("{w}", urdu_word)
+
+        return
+
 
     
     def update_frame(self, current_time):
@@ -92,13 +112,19 @@ class PraiseOrHaze(Game):
         qrect = question_surface.get_rect(center=(self.w // 2, int(self.h * 0.2)))
         self.screen.blit(question_surface, qrect)
 
-        # choosable options
-        start_y = int(self.h * 0.45)
+        # example sentence
+        example_surface = self.sprite_font.render(self.example_text, color=(255, 255, 255))
+        example_surface = pygame.transform.scale_by(example_surface, 3.5)
+        ex_rect = example_surface.get_rect(center=(self.w // 2, int(self.h * 0.4)))
+        self.screen.blit(example_surface, ex_rect)
+
+        # choosable options (lower so it doesn't overlap)
+        start_y = int(self.h * 0.52)
         spacing = int(self.h * 0.08)
 
         for i, opt in enumerate(self.options):
-            option_surface = self.sprite_font.render(opt, color=(255, 255, 255))
-            option_surface = pygame.transform.scale_by(option_surface, 3.5)
+            option_surface = self.sprite_font.render(opt, color=(176, 216, 160))
+            option_surface = pygame.transform.scale_by(option_surface, 4)
 
             orect = option_surface.get_rect(center=(self.w // 2, start_y + i * spacing))
             self.screen.blit(option_surface, orect)
@@ -123,7 +149,7 @@ class PraiseOrHaze(Game):
         self.screen = screen
         self.w, self.h = self.screen.get_size()
         self.sprite_font = SpriteFont()
-        self.question_text, self.options, self.correct_index = self.build_question()
+        self.question_text, self.example_text, self.options, self.correct_index = self.build_question()
         self.selected_index = 0
         self.answered = False
         self.was_correct = False

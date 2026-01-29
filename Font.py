@@ -18,7 +18,7 @@ class SpriteFont:
         layout = [
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrs",
             "tuvwxyzÂÁÀÄÇÊÉÈËÎÍÌÏÑÔÓÒÕŒÛÚÙÜâáàäçêéèëîíìïñôóòö",
-            "æûúùüß%&☆★+_×÷=<>0123456789,.:;?!~()",
+            "æûúùüß%&☆★+-×÷=<>0123456789,.:;?!~()\"_",
         ]
 
 
