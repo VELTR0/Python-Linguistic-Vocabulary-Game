@@ -228,7 +228,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
         paused = False
         pause_menu.disable()
         menu.enable()
-        pygame.display.set_mode((800, 500))
+        pygame.display.set_mode((1024, 768))
         if game_instance is not None:
             game_instance.is_running = False
     
