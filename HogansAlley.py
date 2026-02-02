@@ -8,8 +8,8 @@ pygame.init()
 # TODO agentive/non agentive
 
 class HogansAlley(Game):
-    DISPLAY_TIME = 1000  
-    WAIT_TIME = 1800
+    DISPLAY_TIME = 1500  
+    WAIT_TIME = 2500
     ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
     BOMB_TIMER_SECONDS = 6
     
@@ -38,6 +38,7 @@ class HogansAlley(Game):
         self.barrel_farleft_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarLeft.png")
         self.barrel_farright_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarRight.png")
         self.monitor_image = pygame.image.load(r"Sprites\HogansAlley\Monitor.png")
+        self.card_image = pygame.image.load(r"Sprites\QuickieQuiz\Card.png")
     
     def scale_assets(self, screen):
         assets = {}
@@ -73,6 +74,10 @@ class HogansAlley(Game):
         assets['barrel_farleft_scaled'] = pygame.transform.scale(self.barrel_farleft_image, (barrel_width, barrel_height))
         assets['barrel_farright_scaled'] = pygame.transform.scale(self.barrel_farright_image, (barrel_width, barrel_height))
         assets['monitor_scaled'] = pygame.transform.scale(self.monitor_image, (screen.get_width(), screen.get_height()))
+        
+        card_width = int(assets['character_scale'][0] * 0.8)
+        card_height = int(assets['character_scale'][1] * 0.25)
+        assets['card_scaled'] = pygame.transform.scale(self.card_image, (card_width, card_height))
         
         return assets
     
@@ -143,9 +148,15 @@ class HogansAlley(Game):
                 else:
                     char_rect = character_sprites[i].get_rect(center=(cx, cy-20))
                     screen.blit(character_sprites[i], char_rect)
+                    
+                    # Render card and text at the bottom of character sprite
+                    char_bottom_y = (cy-20) + character_scale[1]/2
+                    card_rect = self.card_scaled.get_rect(midtop=(cx, char_bottom_y))
+                    screen.blit(self.card_scaled, card_rect)
+                    
                     text_surface = self.font_options.render(word, color=(255, 255, 255))
                     text_surface = pygame.transform.scale_by(text_surface, 2.5)
-                    text_rect = text_surface.get_rect(center=(cx, cy))
+                    text_rect = text_surface.get_rect(center=(card_rect.centerx, card_rect.centery))
                     screen.blit(text_surface, text_rect)
                 
                 if i == selected_index:
@@ -247,6 +258,7 @@ class HogansAlley(Game):
         self.barrel_farright_scaled = scaled_assets['barrel_farright_scaled']
         self.barrel_mid_scaled = scaled_assets['barrel_mid_scaled']
         self.monitor_scaled = scaled_assets['monitor_scaled']
+        self.card_scaled = scaled_assets['card_scaled']
 
         self.animation_frames = [scaled_assets['hit_scaled'], self.unfolding_scaled, None, 
                           scaled_assets['unfolding_flash_scaled'], scaled_assets['hit_flash_scaled'], 
