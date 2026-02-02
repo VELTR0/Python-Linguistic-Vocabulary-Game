@@ -95,32 +95,123 @@ class Game:
             self._bomb_timer_just_ended = True
 
     
-    def pick_random_words(self):
-        wordpair = random.choice(list(Vocabulary.lightVerbs.items()))
-        correct_urdu = wordpair[0]
-        correct_english = wordpair[1]
-        
-        word_type = random.choice(["english", "urdu"])
-        if word_type == "english":
-            # English is displayed, Urdu is the answer
-            pool = list(Vocabulary.lightVerbs.values())
-            if correct_english in pool:
-                pool.remove(correct_english)
-            correct_word = correct_english
-        else:
-            # Urdu is displayed, English is the answer
-            pool = list(Vocabulary.lightVerbs.keys())
-            if correct_urdu in pool:
-                pool.remove(correct_urdu)
-            correct_word = correct_urdu
+    def pick_random_words(self, gamemode):
+        if gamemode == 1:
+            # Randomly choose between existing code or lightVerbsAgentive
+            if random.choice([True, False]):
+                # Existing code: use lightVerbs
+                wordpair = random.choice(list(Vocabulary.lightVerbs.items()))
+                correct_urdu = wordpair[0]
+                correct_english = wordpair[1]
+                
+                word_type = random.choice(["english", "urdu"])
+                if word_type == "english":
+                    # English is displayed, Urdu is the answer
+                    pool = list(Vocabulary.lightVerbs.values())
+                    if correct_english in pool:
+                        pool.remove(correct_english)
+                    correct_word = correct_english
+                else:
+                    # Urdu is displayed, English is the answer
+                    pool = list(Vocabulary.lightVerbs.keys())
+                    if correct_urdu in pool:
+                        pool.remove(correct_urdu)
+                    correct_word = correct_urdu
 
-        # Create false options
-        false_options = random.sample(pool, self.num_words - 1)
-        options = [correct_word] + false_options
-        random.shuffle(options)
-        correct_index = options.index(correct_word)
+                # Create false options
+                false_options = random.sample(pool, self.num_words - 1)
+                options = [correct_word] + false_options
+                random.shuffle(options)
+                correct_index = options.index(correct_word)
+                
+                return correct_urdu, correct_english, options, correct_index, word_type
+            else:
+                # Use lightVerbsAgentive with only 2 words
+                selected_urdu_keys = random.sample(list(Vocabulary.lightVerbsAgentive.keys()), 2)
+                correct_urdu = selected_urdu_keys[0]
+                correct_classification = Vocabulary.lightVerbsAgentive[correct_urdu]
+                
+                # Create options (the 2 selected classifications)
+                options = [Vocabulary.lightVerbsAgentive[key] for key in selected_urdu_keys]
+                random.shuffle(options)
+                correct_index = options.index(correct_classification)
+                
+                # Return format adjusted for agentive task
+                return correct_urdu, correct_classification, options, correct_index, "agentive"
         
-        return correct_urdu, correct_english, options, correct_index, word_type
+        elif gamemode == 2:
+            # Create 4 combinations of 2 words based on combination rules
+            # Rules:
+            # - Agentive verbs can be combined with every verb except ambiguous verbs
+            # - Non-agentive verbs can only be combined with non-agentive verbs and ambiguous verbs
+            
+            def is_valid_combination(verb1_type, verb2_type):
+                """Check if two verb types can be combined"""
+                if verb1_type == "agentive" and verb2_type == "ambiguous":
+                    return False
+                if verb2_type == "agentive" and verb1_type == "ambiguous":
+                    return False
+                if verb1_type == "non-agentive" and verb2_type == "agentive":
+                    return False
+                if verb2_type == "non-agentive" and verb1_type == "agentive":
+                    return False
+                return True
+            
+            # Collect all verbs with their types
+            all_verbs = []
+            for urdu, english in Vocabulary.agentive_verbs.items():
+                all_verbs.append((urdu, english, "agentive"))
+            for urdu, english in Vocabulary.non_agentive_verbs.items():
+                all_verbs.append((urdu, english, "non-agentive"))
+            for urdu, english in Vocabulary.ambiguous_verbs.items():
+                all_verbs.append((urdu, english, "ambiguous"))
+            
+            # Generate one correct combination and 3 incorrect ones
+            combinations = []
+            
+            # First, create a correct combination
+            attempts = 0
+            while len(combinations) == 0 and attempts < 100:
+                verb1, verb2 = random.sample(all_verbs, 2)
+                if is_valid_combination(verb1[2], verb2[2]):
+                    combinations.append((verb1, verb2, True))  # True = correct
+                attempts += 1
+            
+            # Then create 3 incorrect combinations
+            attempts = 0
+            while len(combinations) < 4 and attempts < 100:
+                verb1, verb2 = random.sample(all_verbs, 2)
+                if not is_valid_combination(verb1[2], verb2[2]):
+                    # Check if this combination is not already in the list
+                    already_exists = False
+                    for comb in combinations:
+                        if ((comb[0] == verb1 and comb[1] == verb2) or 
+                            (comb[0] == verb2 and comb[1] == verb1)):
+                            already_exists = True
+                            break
+                    if not already_exists:
+                        combinations.append((verb1, verb2, False))  # False = incorrect
+                attempts += 1
+            
+            # Shuffle combinations and find correct index
+            random.shuffle(combinations)
+            correct_index = next(i for i, comb in enumerate(combinations) if comb[2])
+            
+            # Format options as strings for display
+            options = []
+            for comb in combinations:
+                option_str = f"{comb[0][0]} + {comb[1][0]}"  # Urdu1 + Urdu2
+                options.append(option_str)
+            
+            # Return the correct combination info
+            correct_comb = combinations[correct_index]
+            correct_display = f"{correct_comb[0][0]} + {correct_comb[1][0]}"
+            
+            return correct_display, "valid combination", options, correct_index, "combination"
+        
+        elif gamemode == 3:
+            # To be defined later
+            pass
     
     def succ(self):
         self.score += 100
@@ -238,7 +329,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    Games = [PraiseOrHaze.PraiseOrHaze, HogansAlley.HogansAlley, QuickieQuiz.QuickieQuiz]
+    Games = [QuickieQuiz.QuickieQuiz]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # DO NOT initialize game yet - wait until curtain animation is complete

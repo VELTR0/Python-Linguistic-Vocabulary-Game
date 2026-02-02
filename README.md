@@ -24,6 +24,18 @@ The inspiration to our game comes mostly from a Microgame collection from the ga
 - Quickie Quiz
 - Hogans' Alley
 
+## Interesting Codesnippets
+### Combining dicts
+
+    if len(options_list) == 2:
+        positions = ["left", "right"]
+    else:
+        positions = ["top", "bottom", "left", "right"]
+
+    random.shuffle(positions)
+
+    options = dict(zip(positions, options_list))
+
 
 
 
