@@ -138,10 +138,16 @@ class QuickieQuiz(Game):
                 pressed_position = key_to_position.get(event.key)
                 
                 if pressed_position and pressed_position in self.options:
-                    self.check_answer(pressed_position, self.correct_position)
+                    is_correct = self.check_answer(pressed_position, self.correct_position)
                     self.selected_direction = pressed_position
                     self.selection_made = True
                     self.last_action_time = current_time
+
+                    # For the wrong/right sprites
+                    if is_correct:
+                        self.show_correct = True
+                    else:
+                        self.show_wrong = True
     
     def update_frame(self, current_time):
         # Check if timer ran out (and not already answered)
@@ -193,21 +199,16 @@ class QuickieQuiz(Game):
             text_surface = pygame.transform.scale_by(text_surface, 3.0)
             text_rect = text_surface.get_rect(center=(x, y))
             self.screen.blit(text_surface, text_rect)
+
+            # Render the wrong words after user input
+            if self.selection_made:
+                if self.show_wrong and position != self.correct_position:
+                    self.screen.blit(self.wrong_scaled, card_rect)
             
-            
-            # Correct sprite
-            if self.show_correct and self.correct_display_position == position:
-                self.screen.blit(self.correct_scaled, card_rect)
-            
-            # Wrong sprite
-            if self.show_wrong and self.correct_position != position:
-                self.screen.blit(self.wrong_scaled, card_rect)
-        
         # Correct Word Display
         if self.show_urdu_display:
             display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
-            text = f" {display_word}"
-            large_surface = self.font_options.render((self.playerName + " is " + "..."  + text), color=(255, 255, 0))
+            large_surface = self.font_options.render((display_word + " means..."), color=(255, 255, 0))
             large_surface = pygame.transform.scale_by(large_surface, 5)
             large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
             self.screen.blit(large_surface, large_rect)
