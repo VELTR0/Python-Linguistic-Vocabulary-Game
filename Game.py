@@ -126,19 +126,24 @@ class Game:
                 
                 return correct_urdu, correct_english, options, correct_index, word_type
             else:
-                # Use lightVerbsAgentive with only 2 words
-                selected_urdu_keys = random.sample(list(Vocabulary.lightVerbsAgentive.keys()), 2)
-                correct_urdu = selected_urdu_keys[0]
-                correct_classification = Vocabulary.lightVerbsAgentive[correct_urdu]
-                
-                # Create options (the 2 selected classifications)
-                options = [Vocabulary.lightVerbsAgentive[key] for key in selected_urdu_keys]
+                agentive_class = {"agentive": [], "non-agentive": []}
+                for word, agentive in Vocabulary.lightVerbsAgentive.items():
+                    agentive_class[agentive].append(word)
+
+                candidates = [
+                    (random.choice(agentive_class["agentive"]), "agentive"),
+                    (random.choice(agentive_class["non-agentive"]), "non-agentive"),
+                ]
+
+                correct_urdu, correct_classification = random.choice(candidates)
+
+                options = ["agentive", "non-agentive"]
                 random.shuffle(options)
                 correct_index = options.index(correct_classification)
-                
-                # Return format adjusted for agentive task
+
                 return correct_urdu, correct_classification, options, correct_index, "agentive"
-        
+
+                        
         elif gamemode == 2:
             # Create 4 combinations of 2 words based on combination rules
             # Rules:
@@ -329,7 +334,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    Games = [QuickieQuiz.QuickieQuiz]
+    Games = [HogansAlley. HogansAlley]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # DO NOT initialize game yet - wait until curtain animation is complete
