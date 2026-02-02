@@ -1,12 +1,8 @@
 import pygame
 import pygame_menu
-import Game
+from Game import startGame
 
 pygame.init()
-
-
-# Settings
-
 
 
 # Sets the selected gamemode in the menu 
@@ -20,7 +16,7 @@ def start_the_game():
     player_name = name.get_value()  
     menu.disable()
     player_name = "Player" if player_name == '' else player_name
-    Game.startGame(current_gamemode, screen, menu, mytheme, player_name )
+    startGame(current_gamemode, screen, menu, mytheme, player_name )
 
 # Screen setup
 screen = pygame.display.set_mode((1024, 768),0,32)
@@ -36,7 +32,7 @@ mytheme.widget_font = font
 menu = pygame_menu.Menu('Welcome', 1024, 768, theme=mytheme)
 
 name = menu.add.text_input('PLEASE ENTER NAME :', default='')
-menu.add.selector('Gamemode :', [('<Vocabulary>', 0), ('←Grammer→', 1), ('←Test→', 2)], onchange=set_gamemode)
+menu.add.selector('Gamemode :', [('<Vocabulary>', 1), ('←Grammer→', 2), ('←Test→', 3)], onchange=set_gamemode)
 menu.add.button('Play', start_the_game)
 menu.add.button('Quit', pygame_menu.events.EXIT)
 

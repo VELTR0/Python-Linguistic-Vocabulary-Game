@@ -8,9 +8,10 @@ pygame.init()
 # TODO agentive/non agentive
 
 class HogansAlley(Game):
-    DISPLAY_TIME = 1000  
-    WAIT_TIME = 1800
+    DISPLAY_TIME = 1500  
+    WAIT_TIME = 2500
     ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
+    BOMB_TIMER_SECONDS = 6
     
     def __init__(self, gamemode=1, playerName="Player"):
         super().__init__(gamemode, playerName=playerName)
@@ -37,6 +38,7 @@ class HogansAlley(Game):
         self.barrel_farleft_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarLeft.png")
         self.barrel_farright_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarRight.png")
         self.monitor_image = pygame.image.load(r"Sprites\HogansAlley\Monitor.png")
+        self.card_image = pygame.image.load(r"Sprites\QuickieQuiz\Card.png")
     
     def scale_assets(self, screen):
         assets = {}
@@ -72,6 +74,10 @@ class HogansAlley(Game):
         assets['barrel_farleft_scaled'] = pygame.transform.scale(self.barrel_farleft_image, (barrel_width, barrel_height))
         assets['barrel_farright_scaled'] = pygame.transform.scale(self.barrel_farright_image, (barrel_width, barrel_height))
         assets['monitor_scaled'] = pygame.transform.scale(self.monitor_image, (screen.get_width(), screen.get_height()))
+        
+        card_width = int(assets['character_scale'][0] * 0.9)
+        card_height = int(assets['character_scale'][1] * 0.18)
+        assets['card_scaled'] = pygame.transform.scale(self.card_image, (card_width, card_height))
         
         return assets
     
@@ -142,9 +148,18 @@ class HogansAlley(Game):
                 else:
                     char_rect = character_sprites[i].get_rect(center=(cx, cy-20))
                     screen.blit(character_sprites[i], char_rect)
-                    text_surface = self.font_options.render(word, color=(255, 255, 255))
+                    
+                    # Render card and text at the bottom of character sprite
+                    char_bottom_y = (cy-60) + character_scale[1]/2
+                    card_rect = self.card_scaled.get_rect(midtop=(cx, char_bottom_y))
+                    screen.blit(self.card_scaled, card_rect)
+                    
+                    display_text = word
+                    if self.agentive_question:
+                        display_text = "Yes" if word == "agentive" else "No"
+                    text_surface = self.font_options.render(display_text, color=(255, 255, 255))
                     text_surface = pygame.transform.scale_by(text_surface, 2.5)
-                    text_rect = text_surface.get_rect(center=(cx, cy))
+                    text_rect = text_surface.get_rect(center=(card_rect.centerx, card_rect.centery))
                     screen.blit(text_surface, text_rect)
                 
                 if i == selected_index:
@@ -160,7 +175,11 @@ class HogansAlley(Game):
                     screen.blit(crosshair_scaled, crosshair_rect)
 
         if show_urdu_display:
-            prompt_surface = self.font_options.render(("The Thug is... " + display_word), color=(255, 255, 0))
+            if self.agentive_question:
+                prompt_text = "Is " + display_word + " agentive?"
+            else:
+                prompt_text = "The Thug is... " + display_word
+            prompt_surface = self.font_options.render(prompt_text, color=(255, 255, 0))
             prompt_surface = pygame.transform.scale_by(prompt_surface, 5)
             prompt_rect = prompt_surface.get_rect(center=(screen.get_width()/2, screen.get_height()/3))
             screen.blit(prompt_surface, prompt_rect)
@@ -206,7 +225,6 @@ class HogansAlley(Game):
         
         return new_selected_index, new_selection_made, new_last_action_time
         
-        # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
     
     def initialize_game(self, screen):
         self.is_running = True
@@ -227,6 +245,7 @@ class HogansAlley(Game):
         self.current_word_type = "english"
         self.animation_frame_index = 0
         self.last_frame_time = 0
+        self.agentive_question = False
 
         # Music
         pygame.mixer.music.stop()
@@ -247,6 +266,7 @@ class HogansAlley(Game):
         self.barrel_farright_scaled = scaled_assets['barrel_farright_scaled']
         self.barrel_mid_scaled = scaled_assets['barrel_mid_scaled']
         self.monitor_scaled = scaled_assets['monitor_scaled']
+        self.card_scaled = scaled_assets['card_scaled']
 
         self.animation_frames = [scaled_assets['hit_scaled'], self.unfolding_scaled, None, 
                           scaled_assets['unfolding_flash_scaled'], scaled_assets['hit_flash_scaled'], 
@@ -254,8 +274,10 @@ class HogansAlley(Game):
         self.frame_duration = 150
 
         # Start first round
-        self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
+        self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words(self.gamemode)
+        self.agentive_question = len(self.options) == 2
         self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
+        self.BombTimer(self.BOMB_TIMER_SECONDS)
     
     # Blocks Player input
     def handle_frame_input(self, events, current_time):
@@ -275,6 +297,14 @@ class HogansAlley(Game):
     def update_frame(self, current_time):
         n = len(self.options)
         
+        # Check if timer ran out (and not already answered)
+        if not self.selection_made and self._bomb_timer_just_ended:
+            self.check_answer(-1, self.correct_index)
+            self.show_wrong = True
+            self.selection_made = True
+            self.last_action_time = current_time
+            self._bomb_timer_just_ended = False
+        
         # Update animations
         self.animation_frame_index, self.last_frame_time = self.update_animations(
             current_time, self.selection_made, self.last_frame_time, self.animation_frame_index, self.animation_frames, self.frame_duration
@@ -292,12 +322,14 @@ class HogansAlley(Game):
         
         # Start new round if needed
         if new_round_needed:
-            self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
+            self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words(self.gamemode)
+            self.agentive_question = len(self.options) == 2
             self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
             self.show_correct = False
             self.show_wrong = False
             self.selection_made = False
             self.selected_index = 0
+            self.BombTimer(self.BOMB_TIMER_SECONDS)
             self.round_start_time = current_time
             self.show_urdu_display = True
             self.animation_frame_index = 0
@@ -311,7 +343,10 @@ class HogansAlley(Game):
         centers = [(spacing * (i + 1), y) for i in range(n)]
         
         # Display word to translate
-        display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
+        if self.agentive_question:
+            display_word = self.correct_urdu
+        else:
+            display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
         
         # Rendering
         self.render_game(
@@ -322,6 +357,9 @@ class HogansAlley(Game):
             display_word, self.barrel_farleft_scaled, self.barrel_farright_scaled, self.barrel_mid_scaled,
             self.background_scaled, self.monitor_scaled, spacing
         )
+        
+        # Draw timer on top of everything
+        self.bomb_logic(current_time)
     
     def on_pause(self):
         pygame.mixer.music.pause()

@@ -43,5 +43,5 @@ ambiguous_verbs = {
 # Non-agentive verbs can only be combined with non-agentive verbs and "ja"
 
 #Task 1: Vocabs + Agentive/non Agentive
-#Task 2: Which combinations possible
+#Task 2: Which combinations possible 
 #Task 3: Test
