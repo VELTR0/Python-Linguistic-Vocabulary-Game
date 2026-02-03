@@ -208,12 +208,16 @@ class QuickieQuiz(Game):
             if self.agentive_question and self.current_word_type == "agentive":
                 display_word = self.correct_urdu
             else:
-                display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
-            
-            suffix = ""
+                if self.current_word_type == "english":
+                    display_word = self.correct_urdu
+                else:
+                    display_word = self.correct_english
+            prefix = "\""
+            suffix = "\" means..."
             if self.agentive_question:
-                suffix = " is agentive?" if self.current_word_type == "agentive" else " means..."
-            large_surface = self.font_options.render((display_word + suffix), color=(255, 255, 0))
+                prefix = "Is \""
+                suffix = "\" agentive?"
+            large_surface = self.font_options.render((prefix + display_word + suffix), color=(255, 255, 0))
             large_surface = pygame.transform.scale_by(large_surface, 5)
             large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
             self.screen.blit(large_surface, large_rect)

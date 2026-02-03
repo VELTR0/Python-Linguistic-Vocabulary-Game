@@ -187,7 +187,7 @@ class HogansAlley(Game):
             elif self.current_word_type == "verb_pair":
                 prompt_text = display_word + " works with..."
             else:
-                prompt_text = "The Thug is... " + display_word
+                prompt_text = "The Thug is \"" + display_word + "\""
             prompt_surface = self.font_options.render(prompt_text, color=(255, 255, 0))
             prompt_surface = pygame.transform.scale_by(prompt_surface, 5)
             prompt_rect = prompt_surface.get_rect(center=(screen.get_width()/2, screen.get_height()/3))
