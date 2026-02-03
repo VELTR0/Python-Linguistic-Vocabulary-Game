@@ -39,6 +39,7 @@ class HogansAlley(Game):
         self.barrel_farright_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarRight.png")
         self.monitor_image = pygame.image.load(r"Sprites\HogansAlley\Monitor.png")
         self.card_image = pygame.image.load(r"Sprites\QuickieQuiz\Card.png")
+        self.anon_image = pygame.image.load(r"Sprites\HogansAlley\Anon.png")
     
     def scale_assets(self, screen):
         assets = {}
@@ -78,6 +79,8 @@ class HogansAlley(Game):
         card_width = int(assets['character_scale'][0] * 0.9)
         card_height = int(assets['character_scale'][1] * 0.18)
         assets['card_scaled'] = pygame.transform.scale(self.card_image, (card_width, card_height))
+        
+        assets['anon_scaled'] = pygame.transform.scale(self.anon_image, assets['character_scale'])
         
         return assets
     
@@ -147,7 +150,11 @@ class HogansAlley(Game):
                         screen.blit(current_animation_frame, anim_rect)
                 else:
                     char_rect = character_sprites[i].get_rect(center=(cx, cy-20))
-                    screen.blit(character_sprites[i], char_rect)
+                    # For gamemode 3: show Anon until selection is made
+                    if self.GAMEMODE == 3 and not selection_made:
+                        screen.blit(self.anon_scaled, char_rect)
+                    else:
+                        screen.blit(character_sprites[i], char_rect)
                     
                     # Render card and text at the bottom of character sprite
                     char_bottom_y = (cy-60) + character_scale[1]/2
@@ -177,6 +184,8 @@ class HogansAlley(Game):
         if show_urdu_display:
             if self.agentive_question:
                 prompt_text = "Is " + display_word + " agentive?"
+            elif self.current_word_type == "verb_pair":
+                prompt_text = display_word + " works with..."
             else:
                 prompt_text = "The Thug is... " + display_word
             prompt_surface = self.font_options.render(prompt_text, color=(255, 255, 0))
@@ -267,6 +276,7 @@ class HogansAlley(Game):
         self.barrel_mid_scaled = scaled_assets['barrel_mid_scaled']
         self.monitor_scaled = scaled_assets['monitor_scaled']
         self.card_scaled = scaled_assets['card_scaled']
+        self.anon_scaled = scaled_assets['anon_scaled']
 
         self.animation_frames = [scaled_assets['hit_scaled'], self.unfolding_scaled, None, 
                           scaled_assets['unfolding_flash_scaled'], scaled_assets['hit_flash_scaled'], 

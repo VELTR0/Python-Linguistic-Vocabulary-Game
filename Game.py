@@ -145,7 +145,7 @@ class Game:
 
                         
         elif gamemode == 2:
-            # Create 4 combinations of 2 words based on combination rules
+            # Create verb pair combinations with validation rules
             # Rules:
             # - Agentive verbs can be combined with every verb except ambiguous verbs
             # - Non-agentive verbs can only be combined with non-agentive verbs and ambiguous verbs
@@ -154,69 +154,77 @@ class Game:
                 """Check if two verb types can be combined"""
                 if verb1_type == "agentive" and verb2_type == "ambiguous":
                     return False
-                if verb2_type == "agentive" and verb1_type == "ambiguous":
+                if verb1_type == "ambiguous" and verb2_type == "agentive":
                     return False
                 if verb1_type == "non-agentive" and verb2_type == "agentive":
                     return False
-                if verb2_type == "non-agentive" and verb1_type == "agentive":
+                if verb1_type == "ambiguous" and verb2_type == "non-agentive":
                     return False
                 return True
             
             # Collect all verbs with their types
-            all_verbs = []
-            for urdu, english in Vocabulary.agentive_verbs.items():
-                all_verbs.append((urdu, english, "agentive"))
-            for urdu, english in Vocabulary.non_agentive_verbs.items():
-                all_verbs.append((urdu, english, "non-agentive"))
-            for urdu, english in Vocabulary.ambiguous_verbs.items():
-                all_verbs.append((urdu, english, "ambiguous"))
+            all_verbs_with_types = []
+            for urdu in Vocabulary.agentive_verbs.keys():
+                all_verbs_with_types.append((urdu, "agentive"))
+            for urdu in Vocabulary.non_agentive_verbs.keys():
+                all_verbs_with_types.append((urdu, "non-agentive"))
+            for urdu in Vocabulary.ambiguous_verbs.keys():
+                all_verbs_with_types.append((urdu, "ambiguous"))
             
-            # Generate one correct combination and 3 incorrect ones
-            combinations = []
+            # Pick a random first verb
+            correct_urdu, first_verb_type = random.choice(all_verbs_with_types)
             
-            # First, create a correct combination
-            attempts = 0
-            while len(combinations) == 0 and attempts < 100:
-                verb1, verb2 = random.sample(all_verbs, 2)
-                if is_valid_combination(verb1[2], verb2[2]):
-                    combinations.append((verb1, verb2, True))  # True = correct
-                attempts += 1
+            # Find valid second verbs
+            valid_second_verbs = []
+            invalid_second_verbs = []
+            for urdu, verb_type in all_verbs_with_types:
+                if urdu == correct_urdu:
+                    continue
+                if is_valid_combination(first_verb_type, verb_type):
+                    valid_second_verbs.append(urdu)
+                else:
+                    invalid_second_verbs.append(urdu)
             
-            # Then create 3 incorrect combinations
-            attempts = 0
-            while len(combinations) < 4 and attempts < 100:
-                verb1, verb2 = random.sample(all_verbs, 2)
-                if not is_valid_combination(verb1[2], verb2[2]):
-                    # Check if this combination is not already in the list
-                    already_exists = False
-                    for comb in combinations:
-                        if ((comb[0] == verb1 and comb[1] == verb2) or 
-                            (comb[0] == verb2 and comb[1] == verb1)):
-                            already_exists = True
-                            break
-                    if not already_exists:
-                        combinations.append((verb1, verb2, False))  # False = incorrect
-                attempts += 1
+            # Pick one valid verb as correct answer
+            if not valid_second_verbs:
+                # Fallback if no valid combination found
+                correct_second = random.choice([v[0] for v in all_verbs_with_types if v[0] != correct_urdu])
+            else:
+                correct_second = random.choice(valid_second_verbs)
             
-            # Shuffle combinations and find correct index
-            random.shuffle(combinations)
-            correct_index = next(i for i, comb in enumerate(combinations) if comb[2])
+            # Pick 3 invalid verbs for wrong options
+            if len(invalid_second_verbs) < 3:
+                # Not enough invalid verbs, use some valid ones as decoys
+                wrong_options = random.sample(
+                    invalid_second_verbs + [v for v in valid_second_verbs if v != correct_second],
+                    min(3, len(invalid_second_verbs) + len([v for v in valid_second_verbs if v != correct_second]))
+                )
+                # Pad with any remaining verbs if needed
+                while len(wrong_options) < 3:
+                    remaining = [v[0] for v in all_verbs_with_types if v[0] not in wrong_options and v[0] != correct_second and v[0] != correct_urdu]
+                    if remaining:
+                        wrong_options.append(random.choice(remaining))
+                    else:
+                        break
+            else:
+                wrong_options = random.sample(invalid_second_verbs, min(3, len(invalid_second_verbs)))
             
-            # Format options as strings for display
-            options = []
-            for comb in combinations:
-                option_str = f"{comb[0][0]} + {comb[1][0]}"  # Urdu1 + Urdu2
-                options.append(option_str)
+            # Create options list with correct answer
+            options = [correct_second] + wrong_options[:3]
+            random.shuffle(options)
+            correct_index = options.index(correct_second)
             
-            # Return the correct combination info
-            correct_comb = combinations[correct_index]
-            correct_display = f"{correct_comb[0][0]} + {correct_comb[1][0]}"
-            
-            return correct_display, "valid combination", options, correct_index, "combination"
+            # Return in same format as gamemode 1
+            # correct_urdu: first verb
+            # correct_english: second verb (used as comparison)
+            # options: list of 4 possible second verbs
+            # correct_index: index of correct second verb
+            # word_type: "verb_pair" to distinguish from other modes
+            return correct_second, correct_urdu, options, correct_index, "verb_pair"
         
         elif gamemode == 3:
-            # To be defined later
-            pass
+            chosen_mode = random.choice([1, 2])
+            return self.pick_random_words(chosen_mode)
     
     def succ(self):
         self.score += 100
@@ -334,7 +342,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    Games = [HogansAlley. HogansAlley]
+    Games = [HogansAlley. HogansAlley, PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # DO NOT initialize game yet - wait until curtain animation is complete
