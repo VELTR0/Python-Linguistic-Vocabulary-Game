@@ -145,82 +145,45 @@ class Game:
 
                         
         elif gamemode == 2:
-            # Create verb pair combinations with validation rules
-            # Rules:
-            # - Agentive verbs can be combined with every verb except ambiguous verbs
-            # - Non-agentive verbs can only be combined with non-agentive verbs and ambiguous verbs
+            # Creates 1 correct and some incorrect verb pair combinations based on these 2 rules:
+            # - If first word is from agentive_verbs: second can be from agentive_verbs OR non_agentive_verbs
+            # - If first word is from non_agentive_verbs: second can be from non_agentive_verbs OR ambiguous_verbs
+
+            first_verb_pool = list(Vocabulary.agentive_verbs.keys()) + list(Vocabulary.non_agentive_verbs.keys())
+            correct_first_word = random.choice(first_verb_pool)
+            first_verb_type = None
+            valid_second_pool = []
+            invalid_second_pool = []
             
-            def is_valid_combination(verb1_type, verb2_type):
-                """Check if two verb types can be combined"""
-                if verb1_type == "agentive" and verb2_type == "ambiguous":
-                    return False
-                if verb1_type == "ambiguous" and verb2_type == "agentive":
-                    return False
-                if verb1_type == "non-agentive" and verb2_type == "agentive":
-                    return False
-                if verb1_type == "ambiguous" and verb2_type == "non-agentive":
-                    return False
-                return True
+            if correct_first_word in Vocabulary.agentive_verbs:
+                first_verb_type = "agentive"
+                valid_second_pool = list(Vocabulary.agentive_verbs.keys()) + list(Vocabulary.non_agentive_verbs.keys())
+            elif correct_first_word in Vocabulary.non_agentive_verbs:
+                first_verb_type = "non-agentive"
+                valid_second_pool = list(Vocabulary.non_agentive_verbs.keys()) + list(Vocabulary.ambiguous_verbs.keys())
             
-            # Collect all verbs with their types
-            all_verbs_with_types = []
-            for urdu in Vocabulary.agentive_verbs.keys():
-                all_verbs_with_types.append((urdu, "agentive"))
-            for urdu in Vocabulary.non_agentive_verbs.keys():
-                all_verbs_with_types.append((urdu, "non-agentive"))
-            for urdu in Vocabulary.ambiguous_verbs.keys():
-                all_verbs_with_types.append((urdu, "ambiguous"))
+            correct_second_word = random.choice(valid_second_pool)
+            if first_verb_type == "agentive":
+                invalid_second_pool = list(Vocabulary.ambiguous_verbs.keys())
+            elif first_verb_type == "non-agentive":
+                invalid_second_pool = list(Vocabulary.agentive_verbs.keys())
             
-            # Pick a random first verb
-            correct_urdu, first_verb_type = random.choice(all_verbs_with_types)
+            false_options = random.sample(invalid_second_pool, min(self.num_words - 1, len(invalid_second_pool)))
             
-            # Find valid second verbs
-            valid_second_verbs = []
-            invalid_second_verbs = []
-            for urdu, verb_type in all_verbs_with_types:
-                if urdu == correct_urdu:
-                    continue
-                if is_valid_combination(first_verb_type, verb_type):
-                    valid_second_verbs.append(urdu)
-                else:
-                    invalid_second_verbs.append(urdu)
+            # Sometmes we don't have enough wrong options - so in this case we fill up
+            if len(false_options) < self.num_words - 1:
+                all_verbs = list(Vocabulary.agentive_verbs.keys()) + list(Vocabulary.non_agentive_verbs.keys()) + list(Vocabulary.ambiguous_verbs.keys())
+                for verb in false_options + [correct_second_word]:
+                    if verb in all_verbs:
+                        all_verbs.remove(verb)
+                additional = random.sample(all_verbs, self.num_words - 1 - len(false_options))
+                false_options.extend(additional)
             
-            # Pick one valid verb as correct answer
-            if not valid_second_verbs:
-                # Fallback if no valid combination found
-                correct_second = random.choice([v[0] for v in all_verbs_with_types if v[0] != correct_urdu])
-            else:
-                correct_second = random.choice(valid_second_verbs)
-            
-            # Pick 3 invalid verbs for wrong options
-            if len(invalid_second_verbs) < 3:
-                # Not enough invalid verbs, use some valid ones as decoys
-                wrong_options = random.sample(
-                    invalid_second_verbs + [v for v in valid_second_verbs if v != correct_second],
-                    min(3, len(invalid_second_verbs) + len([v for v in valid_second_verbs if v != correct_second]))
-                )
-                # Pad with any remaining verbs if needed
-                while len(wrong_options) < 3:
-                    remaining = [v[0] for v in all_verbs_with_types if v[0] not in wrong_options and v[0] != correct_second and v[0] != correct_urdu]
-                    if remaining:
-                        wrong_options.append(random.choice(remaining))
-                    else:
-                        break
-            else:
-                wrong_options = random.sample(invalid_second_verbs, min(3, len(invalid_second_verbs)))
-            
-            # Create options list with correct answer
-            options = [correct_second] + wrong_options[:3]
+            options = [correct_second_word] + false_options[:self.num_words - 1]
             random.shuffle(options)
-            correct_index = options.index(correct_second)
+            correct_index = options.index(correct_second_word)
             
-            # Return in same format as gamemode 1
-            # correct_urdu: first verb
-            # correct_english: second verb (used as comparison)
-            # options: list of 4 possible second verbs
-            # correct_index: index of correct second verb
-            # word_type: "verb_pair" to distinguish from other modes
-            return correct_second, correct_urdu, options, correct_index, "verb_pair"
+            return correct_first_word, correct_second_word, options, correct_index, "verb_pair"
         
         elif gamemode == 3:
             chosen_mode = random.choice([1, 2])
@@ -252,15 +215,12 @@ class Game:
     def initialize_game(self, screen):
         pass
 
-    # Called when the game is paused
     def on_pause(self):
         pygame.mixer.music.pause()
 
-    # Called when the game is resumed
     def on_resume(self, paused_duration):
         if self._bomb_timer_active:
             self._bomb_timer_start_ms += paused_duration
-
         pygame.mixer.music.unpause()
 
     def check_answer(self, selected_index, correct_index):
@@ -271,7 +231,7 @@ class Game:
             wrong_sound.play()
             self.fail()
 
-    # Blocks Player input for a number of seconds but lets animation run
+    # Blocks Player input but lets animation run
     def wait_for_seconds(self, seconds, end_game_after=False):
         start_time = pygame.time.get_ticks()
         end_time = start_time + (seconds * 1000)
@@ -279,20 +239,15 @@ class Game:
         
         while pygame.time.get_ticks() < end_time:
             current_time = pygame.time.get_ticks()
-            
-            # Process events but ignore input
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
                     self.is_running = False
                     return
-            
             # Continue rendering and animations
             self.update_frame(current_time)
             pygame.display.flip()
             clock.tick(60)
-        
-        # End game after wait if specified
         if end_game_after:
             self.is_running = False
 
@@ -342,7 +297,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    Games = [QuickieQuiz.QuickieQuiz, PraiseOrHaze.PraiseOrHaze, HogansAlley.HogansAlley]
+    Games = [QuickieQuiz.QuickieQuiz]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # DO NOT initialize game yet - wait until curtain animation is complete
@@ -359,52 +314,34 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
         
         events = pygame.event.get()
         
-        # Handle game state transitions
         if game_state == WAITING_FOR_OPENING:
-            # Update curtain animation
             curtain.update(current_time)
             
-            # Initialize the game on first frame of this state
-            if not game_instance.is_running:  # Only initialize if not already running
+            if not game_instance.is_running: 
                 game_instance.initialize_game(screen)
-                # Pause music immediately after initialization
                 pygame.mixer.music.pause()
-                music_start_time = current_time + 400  # Start music 0.2 seconds later
+                music_start_time = current_time + 400
             
-            # Render the game in the background (but without timer running)
             game_instance.update_frame(current_time)
-            
-            # Render curtain overlay on top
             curtain.render(screen)
             
-            # Check if opening animation is complete
             if curtain.is_animation_complete():
-                # Reset the bomb timer start time to NOW (not from initialization time)
                 if game_instance._bomb_timer_active:
                     game_instance._bomb_timer_start_ms = pygame.time.get_ticks()
-                
-                # Start music if the time has come
                 if music_start_time and current_time >= music_start_time:
                     pygame.mixer.music.unpause()
-                    music_start_time = None  # Only play once
+                    music_start_time = None
                 
-                # Signal that the game has truly started - bomb timer can now run
                 game_instance.game_actually_started = True
                 game_state = PLAYING
         
         elif game_state == PLAYING:
-            # Check if current game ended - start closing animation
             if not game_instance.is_running:
-                total_score = game_instance.score  # Keep the score
-                game_instance.game_actually_started = False  # Disable bomb timer during transition
-                
-                # Determine if the last round was successful (score increased)
+                total_score = game_instance.score
+                game_instance.game_actually_started = False  # Disables bomb timer during transition
                 is_success = game_instance.score > last_score
                 last_score = game_instance.score
-                
-                # Pause the game music
                 pygame.mixer.music.pause()
-                
                 game_state = WAITING_FOR_CLOSING
                 curtain.start_closing_animation(screen, is_success=is_success)
                 continue
@@ -425,27 +362,19 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
                 game_instance.on_resume(paused_duration)
                 paused = False
             else:
-                # Pass events to game instance for input handling
                 game_instance.handle_frame_input(events, current_time)
-                # Update game logic and render
                 game_instance.update_frame(current_time)
         
         elif game_state == WAITING_FOR_CLOSING:
-            # Update curtain closing animation
             curtain.update(current_time)
-            
-            # Render the game in the background (but without timer running)
             game_instance.update_frame(current_time)
-            
-            # Render curtain overlay on top
             curtain.render(screen)
             
-            # Check if closing animation is complete
+            # Starts a new game
             if curtain.is_animation_complete():
-                # Start a new game
                 GameClass = random.choice(Games)
                 game_instance = GameClass(gamemode, playerName=playerName)
-                game_instance.score = total_score  # Transfer score to new instance
+                game_instance.score = total_score
                 game_instance.initialize_game(screen)
                 game_state = WAITING_FOR_OPENING
                 curtain.start_opening_animation(screen)
