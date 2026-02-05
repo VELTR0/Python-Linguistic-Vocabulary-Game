@@ -7,6 +7,12 @@ from CurtainTransition import CurtainTransition
 
 pygame.init()
 
+# Fix text_loose
+# NEUE frAGEN
+# bOSS NAMEN
+# text wie guter hit some dmg, etc.
+
+
 class Boss(Game):
     ANIMATION_SPEED = 150
     TEXT_TYPING_DURATION = 400
@@ -87,7 +93,7 @@ class Boss(Game):
         self.answer_display_progress = 0.0
         self.answer_typing_active = False
         self.answer_typing_start_time = 0
-        self.question_waiting_for_input = False
+        self.question_waiting = False
         
         self.boss_level = 1
         self.boss_hp = 30
@@ -305,15 +311,13 @@ class Boss(Game):
     def setup_questions(self):
         self.questions = []
         
-        # Combine all verbs
         all_verbs = {**agentive_verbs, **non_agentive_verbs, **ambiguous_verbs}
         urdu_words = list(all_verbs.keys())
         all_english = list(all_verbs.values())
         
-        # Type 1: Translate Urdu to English (4 options)
+        # Urdu to English
         for urdu_word in urdu_words:
             correct_answer = all_verbs[urdu_word]
-            # Get 3 random wrong answers
             wrong_answers = [w for w in all_english if w != correct_answer]
             if len(wrong_answers) >= 3:
                 wrong_answers = random.sample(wrong_answers, 3)
@@ -331,7 +335,7 @@ class Boss(Game):
                 "correct": correct_index
             })
         
-        # Type 2: Agentive or Non-Agentive (2 options)
+        # Agentive or Non-Agentive
         for urdu_word in urdu_words:
             if urdu_word in agentive_verbs:
                 answers = ["Non-Agentive", "Agentive"]
@@ -339,7 +343,7 @@ class Boss(Game):
             elif urdu_word in non_agentive_verbs:
                 answers = ["Non-Agentive", "Agentive"]
                 correct_index = 0
-            else:  # ambiguous_verbs
+            else:
                 answers = ["Agentive", "Ambiguous"]
                 correct_index = 1
             
@@ -350,10 +354,9 @@ class Boss(Game):
                 "correct": correct_index
             })
         
-        # Type 3: Translate English to Urdu (4 options)
+        # English to Urdu
         unique_english = list(set(all_english))
         for english_word in unique_english:
-            # Find the correct urdu word(s)
             correct_urdu = [k for k, v in all_verbs.items() if v == english_word][0]
             wrong_urdu = [k for k, v in all_verbs.items() if v != english_word]
             if len(wrong_urdu) >= 3:
@@ -384,9 +387,8 @@ class Boss(Game):
             self.answer_typing_active = True
             self.answer_typing_start_time = pygame.time.get_ticks()
             self.answer_display_progress = 0.0
-            self.question_waiting_for_input = False
+            self.question_waiting = False
         else:
-            # All questions answered
             pass
 
     def update_frame(self, current_time):
@@ -409,28 +411,25 @@ class Boss(Game):
                 self.last_frame_time = current_time
                 self.current_frame = (self.current_frame + 1) % len(self.boss_frames)
         
-        # Update lose shake animation
+        # loosing Background animation
         if self.lose_active:
             elapsed_time = current_time - self.lose_start_time
             if elapsed_time < Boss.LOSE_DURATION:
-                # Diagonal shake from top-left to bottom-right (faster)
                 progress = (elapsed_time % 50) / 50.0
                 self.shake_offset_x = int(Boss.SHAKE_INTENSITY * progress)
                 self.shake_offset_y = int(Boss.SHAKE_INTENSITY * progress)
             else:
-                # Start curtain closing animation
                 self.lose_active = False
                 self.shake_offset_x = 0
                 self.shake_offset_y = 0
                 self.curtain_closing = True
-                pygame.mixer.music.stop()  # Stop music when curtain closes
+                pygame.mixer.music.stop()
                 self.curtain.start_closing_animation(self.screen, is_success=False)
         
-        # Handle curtain closing animation
+        # Curtain animations and logic
         if self.curtain_closing:
             still_animating = self.curtain.update(current_time)
             if not still_animating:
-                # Curtain closed, now reset and open again
                 self.curtain_closing = False
                 self.curtain_opening = True
                 
@@ -448,27 +447,24 @@ class Boss(Game):
                 self.stats_animation_complete = False
                 self.text_animation_complete = False
                 self.text_display_active = False
-                self.question_waiting_for_input = False
+                self.question_waiting = False
                 self.selected_answer_index = 0
                 
                 # Reset for new boss
                 self.current_question_index = 0
                 self.initialize_game(self.screen)
                 
-                # Start curtain opening animation
                 self.curtain.start_opening_animation(self.screen)
         
-        # Handle curtain opening animation
         if self.curtain_opening:
             still_animating = self.curtain.update(current_time)
             if not still_animating:
                 self.curtain_opening = False
         
-        # Update win animations
         if self.win_active:
             elapsed_time = current_time - self.win_start_time
             
-            # Phase 1: Boss slides down
+            # remove Boss
             if not self.boss_slide_down_active:
                 self.boss_slide_down_active = True
                 self.boss_slide_down_start_time = current_time
@@ -479,33 +475,32 @@ class Boss(Game):
                     progress = slide_elapsed / Boss.BOSS_SLIDE_DOWN_DURATION
                     self.boss_slide_offset_y = int(progress * (self.h + 200))
                 else:
-                    # Phase 2: UI fades out and windows close (reverse animation)
+                    # Ui fade out
                     if not self.ui_fade_out_active:
                         self.ui_fade_out_active = True
                         self.ui_fade_out_start_time = current_time
-                        self.text_display_active = False  # Stop dialog immediately
+                        self.text_display_active = False
                     
                     fade_elapsed = current_time - self.ui_fade_out_start_time
                     if fade_elapsed < Boss.UI_FADE_OUT_DURATION:
-                        # Reverse animation: shrink from full width to 0
+                        # Reverse animation (disappearing animation)
                         progress = fade_elapsed / Boss.UI_FADE_OUT_DURATION
                         self.stats_current_width = int(self.stats_target_width * (1.0 - progress))
                         self.text_current_width = int(self.text_target_width * (1.0 - progress))
                     else:
-                        # Phase 3: Background animation for 1 second
+                        # Background moving forward
                         if not self.background_anim_active:
                             self.background_anim_active = True
                             self.background_anim_start_time = current_time
-                            self.animation_frozen_frame = None  # Unfreeze animation
+                            self.animation_frozen_frame = None
                         
                         bg_anim_elapsed = current_time - self.background_anim_start_time
                         if bg_anim_elapsed < Boss.BACKGROUND_ANIM_DURATION:
-                            # Continue animating background
                             if current_time - self.last_frame_time >= self.ANIMATION_SPEED:
                                 self.last_frame_time = current_time
                                 self.current_frame = (self.current_frame + 1) % len(self.boss_frames)
                         else:
-                            # Phase 4: Reset and increase level
+                            # Loosing stats reset
                             self.win_active = False
                             self.boss_slide_down_active = False
                             self.ui_fade_out_active = False
@@ -515,7 +510,7 @@ class Boss(Game):
                             
                             # Increase level and HP
                             self.boss_level += 1
-                            self.boss_hp = 30 + (self.boss_level - 1) * 30
+                            self.boss_hp = self.boss_hp + (self.boss_level - 1) * 30
                             
                             # Reset animation states
                             self.intro_finished = False
@@ -527,13 +522,13 @@ class Boss(Game):
                             self.stats_animation_complete = False
                             self.text_animation_complete = False
                             self.text_display_active = False
-                            self.question_waiting_for_input = False
+                            self.question_waiting = False
                             self.selected_answer_index = 0
                             self.lose_active = False
                             self.shake_offset_x = 0
                             self.shake_offset_y = 0
                             
-                            # Reset for new boss
+                            # Reset boss
                             self.current_question_index = 0
                             self.initialize_game(self.screen)
                             return
@@ -626,29 +621,27 @@ class Boss(Game):
                     self.text_animation_complete = True
                     if not self.text_display_active:
                         self.text_display_active = True
-                        self.show_next_text()
+                        self.next_text()
             
             text_height = self.text_image.get_height()
+            # Use loose png versions
             if self.text_current_width > 0 and not self.ui_fade_out_active:
-                # Use loose image if lose is active
                 text_to_draw = self.text_loose_image if self.lose_active else self.text_image
                 scaled_text = pygame.transform.scale(text_to_draw, (int(self.text_current_width), text_height))
                 text_rect = scaled_text.get_rect(midbottom=(self.w // 2, self.h))
                 self.screen.blit(scaled_text, text_rect)
                 
-                # Show win message if win is active (before UI fade-out)
+                # Win/Lose Messages
                 if self.win_active:
                     box_x = text_rect.left
                     box_y = text_rect.top
                     win_text = self.boss_font.render(f"You beat {self.boss_name}", color=(255, 255, 255), scale=4.5)
                     self.screen.blit(win_text, (box_x + 50, box_y + 35))
-                # Show lose message if lose is active
                 elif self.lose_active:
                     box_x = text_rect.left
                     box_y = text_rect.top
                     lose_text = self.boss_font.render("YoU aRe ToO wEaK!", color=(255, 255, 255), scale=4.5)
                     self.screen.blit(lose_text, (box_x + 50, box_y + 35))
-                # Dialog Text (but not if win_active)
                 elif self.text_display_active and self.current_text_lines and not self.win_active:
                     box_x = text_rect.left
                     box_y = text_rect.top
@@ -690,7 +683,7 @@ class Boss(Game):
                             line_text = self.boss_font.render(line, color=(255, 255, 255), scale=4.5)
                             self.screen.blit(line_text, (box_x + 50, box_y + 35 + i * dialog_line_spacing))
         
-        # Draw question and answers
+        # question and answers
         if self.current_question and self.text_image and not self.win_active:
             text_height = self.text_image.get_height()
             if self.text_current_width > 0:
@@ -698,30 +691,27 @@ class Boss(Game):
                 text_rect = scaled_text.get_rect(midbottom=(self.w // 2, self.h))
                 self.screen.blit(scaled_text, text_rect)
                 
-                # Show question if answer typing not finished
-                if not self.question_waiting_for_input:
+                if not self.question_waiting:
                     question_text = self.boss_font.render(self.current_question["question"], color=(255, 255, 255), scale=4.5)
                     box_x = text_rect.left
                     box_y = text_rect.top
                     self.screen.blit(question_text, (box_x + 50, box_y + 35))
                 
-                # Show answers in a 2x2 grid layout inside the text box
-                if self.question_waiting_for_input:
+                # Creates 2x2 grid for awnsers
+                if self.question_waiting:
                     box_x = text_rect.left
                     box_y = text_rect.top
                     
-                    # Grid layout: 2x2 for answers (same layout as dialog text)
-                    grid_padding = 100  # Move answers more to the right
-                    answer_start_y = box_y + 35
-                    answer_spacing = 80  # Closer together vertically (from bottom to top)
-                    answer_x_offset = 500  # Further apart horizontally (left and right)
+                    answer_start_left = 100
+                    answer_y = box_y + 35
+                    answer_spacing = 80
+                    answer_x = 500
                     
-                    # Positions: top-left, top-right, bottom-left, bottom-right
                     positions = [
-                        (box_x + grid_padding, answer_start_y),  # Top-left (0)
-                        (box_x + grid_padding + answer_x_offset, answer_start_y),  # Top-right (1)
-                        (box_x + grid_padding, answer_start_y + answer_spacing),  # Bottom-left (2)
-                        (box_x + grid_padding + answer_x_offset, answer_start_y + answer_spacing)  # Bottom-right (3)
+                        (box_x + answer_start_left, answer_y),
+                        (box_x + answer_start_left + answer_x, answer_y),
+                        (box_x + answer_start_left, answer_y + answer_spacing),
+                        (box_x + answer_start_left + answer_x, answer_y + answer_spacing)
                     ]
                     
                     for i, answer in enumerate(self.current_answers):
@@ -730,22 +720,19 @@ class Boss(Game):
                         
                         answer_x, answer_y = positions[i]
                         
-                        # Draw selector if this is the selected answer
+                        # Selector
                         if i == self.selected_answer_index:
                             scaled_selector = pygame.transform.scale(self.selector_original_image, (35, 50))
-                            # Position selector to the left of the answer text
                             self.screen.blit(scaled_selector, (answer_x - 60, answer_y + 10))
                         
-                        # Draw answer text with same scale as dialog
+                        # Answer text
                         answer_text = self.boss_font.render(answer, color=(255, 255, 255), scale=4.5)
                         self.screen.blit(answer_text, (answer_x, answer_y))
         
-        # Draw curtain animation on top of everything
         if self.curtain_closing or self.curtain_opening:
             self.curtain.render(self.screen)
 
-    def show_next_text(self):
-        """Show the next screen from the dialog"""
+    def next_text(self):
         if self.current_screen_index < len(self.dialog_screens):
             self.current_text_lines = self.dialog_screens[self.current_screen_index]
             self.waiting_for_input = False
@@ -756,60 +743,51 @@ class Boss(Game):
                 self.texting_sound.play(-1)
                 self.texting_sound_playing = True
         else:
-            # All dialog finished, start questions
+            # starts quesations in dialog
             self.text_display_active = False
             self.game_state = "question"
             self.show_question()
 
     def handle_frame_input(self, events, current_time):
-        # Block input during intro animation and boss jump
+        # Block input during animations
         if not self.intro_finished or self.boss_jump_active:
             return
         
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if self.current_question:
-                    if not self.question_waiting_for_input:
-                        # Wait for space press to show answers
+                    if not self.question_waiting:
                         if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                            self.question_waiting_for_input = True
+                            self.question_waiting = True
                     else:
-                        # Handle answer selection with 2x2 grid navigation
+                        # Player input
                         if event.key == pygame.K_UP:
-                            # Up navigation: 2->0, 3->1
                             if self.selected_answer_index in [2, 3]:
                                 self.selected_answer_index -= 2
                         elif event.key == pygame.K_DOWN:
-                            # Down navigation: 0->2, 1->3
                             if self.selected_answer_index in [0, 1]:
                                 self.selected_answer_index += 2
                         elif event.key == pygame.K_LEFT:
-                            # Left navigation: 1->0, 3->2
                             if self.selected_answer_index in [1, 3]:
                                 self.selected_answer_index -= 1
                         elif event.key == pygame.K_RIGHT:
-                            # Right navigation: 0->1, 2->3
                             if self.selected_answer_index in [0, 2]:
                                 self.selected_answer_index += 1
                         elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                            # Check if answer is correct
+                            # Check answer
                             is_correct = self.selected_answer_index == self.current_question["correct"]
                             if is_correct:
-                                # Reset lose state if it was active
                                 self.lose_active = False
                                 self.shake_offset_x = 0
                                 self.shake_offset_y = 0
                                 
-                                # Trigger hit animation and decrease HP
                                 self.boss_hit_active = True
                                 self.boss_hit_start_time = pygame.time.get_ticks()
                                 self.boss_hp = max(0, self.boss_hp - 10)
-                                # Play hit sound
                                 self.hit_sound.play()
                                 
-                                # Check if boss is defeated
+                                # Win/loose check
                                 if self.boss_hp <= 0:
-                                    # Trigger win state
                                     self.win_active = True
                                     self.win_start_time = pygame.time.get_ticks()
                                 else:
@@ -820,7 +798,6 @@ class Boss(Game):
                                         self.game_state = "game_over"
                                         self.is_running = False
                             else:
-                                # Wrong answer - trigger lose state
                                 self.lose_active = True
                                 self.lose_start_time = pygame.time.get_ticks()
                                 self.hit_sound.play()
@@ -835,7 +812,7 @@ class Boss(Game):
                     elif self.text_display_active and self.waiting_for_input:
                         self.current_screen_index += 1
                         if self.current_screen_index < len(self.dialog_screens):
-                            self.show_next_text()
+                            self.next_text()
                         else:
                             self.text_display_active = False
                             self.show_question()
