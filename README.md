@@ -33,21 +33,25 @@ In the grammar gamemode the player is asked to pick a word out of 4 options, tha
 ### Gamemode 3: Test
 The last gamemode is a test, consisting of a round based game where the player has to defeat an enemy. This includes some of the other microgames. The player has to choose right options from the questions in gamemode 1 and 2 in order to progress in this mode and beat the enemy. Each won round lowers the enemies HP while losing just one round makes the player loose the entire game. If the player manages to defeat the enemy, they progress to level 2, which increases the enemies HP.
 
-## All the Games:
+## All the Scenes:
 
 ### Quickie Quiz
 ![alt text](DocFiles/QuizAgentive.png.png)
 
 ### Hogans Alley
+![alt text](DocFiles/HogansAlleyOpening.png)
 ![alt text](DocFiles/HogansAlley.png)
 
 ### Praize or Haze
 
 
-### Dungeon Dilemma
+### Boss
 
 
-![alt text](DocFiles/HogansAlleyOpening.png)
+### Menu
+
+
+
 
 
 
@@ -57,7 +61,7 @@ The last gamemode is a test, consisting of a round based game where the player h
 ### David
 David implemented the games:
 - PraiseOrHaze
-- Dungeon Dilemma
+- Boss
 
 Additionally he implemented:
 - Game Fonts
@@ -66,8 +70,6 @@ Additionally he implemented:
 In the beginning i had mny problems with the right scaling of the sprites and getting the, which got much more easily with time and a sort of feeling for the number to use to move sprites around. The main issues was the Main Game logic, escpecially what party of the minigames we could put in the Game class to reuse in the otehr minigames. My biggest encounter was the creating of the Font. I researched and tried quite a while until i got it to work. It scann though the font sprite line for line with the first pixel in the left upper corner as "Background" and ends a symbol once it detect a Background pixel after detecting a not Background pixel. I alligned all symbols to the bottom line, why letters like "g" and "y", which should be below the bottom textline are kind of "levitating" and look a bit weird. Unfortuantly the Font couldn't be used in the menu, because the pygame menu only allows its own and system font, why we used teh 8-Bit Font which suited the best, we thought. Another big problem I run into was crashing during animation, if clicked anything. Escpecially in the Boss game i had many issues with animation crashes or overlaping. But most of these Problems were later solved by putting boolean states during animation, during which the player input was completly blocked. But some errors remained if the PLayer clicks something during a specific moment like in the Boss game during The Boss spwn it resets the game.
 
 ### Pascal
-![alt text](DocFiles/QuickieQuiz.png)
-![alt text](DocFiles/HogansAlley.png)
 Pascal implemented the games:
 - Quickie Quiz
 - Hogans Alley
