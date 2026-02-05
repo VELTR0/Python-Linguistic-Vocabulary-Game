@@ -5,7 +5,8 @@ from Boss_Font import BossFont
 from Vocabulary import agentive_verbs, non_agentive_verbs, ambiguous_verbs
 from CurtainTransition import CurtainTransition
 import HogansAlley
-Games = [HogansAlley.HogansAlley]
+import PraiseOrHaze
+Games = [HogansAlley.HogansAlley, PraiseOrHaze.PraiseOrHaze]
 
 pygame.init()
 
@@ -125,7 +126,7 @@ class Boss(Game):
         
         self.load_sprites()
         # Minigame encounter
-        self.minigame_chance = 0.3
+        self.minigame_chance = 1
         self.minigame_triggered = False
 
     def load_sprites(self):

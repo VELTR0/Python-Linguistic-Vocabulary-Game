@@ -244,6 +244,7 @@ class PraiseOrHaze(Game):
             color=(255, 255, 0),
             scale=q_scale,
             line_gap_px=int(self.h * 0.02)
+                    
         )
 
         # example sentence
