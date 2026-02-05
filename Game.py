@@ -256,6 +256,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     import PraiseOrHaze
     import QuickieQuiz
     import ZeldaRipoff
+    import Boss
     
     pygame.display.set_mode((1024, 768))
 
@@ -297,7 +298,10 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    Games = [PraiseOrHaze.PraiseOrHaze]
+    if gamemode == 3:
+        Games = [Boss.Boss]
+    else:
+        Games = [HogansAlley.HogansAlley, PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # DO NOT initialize game yet - wait until curtain animation is complete

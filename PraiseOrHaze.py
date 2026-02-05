@@ -31,12 +31,12 @@ class PraiseOrHaze(Game):
         self.load_sprites()
         self.example_text = ""
         self.exampleSentences = {
-            "le": 'She will "{w}" a photo.',
-            "de": 'Please "{w}" me the book.',
-            "a":  'They will "{w}" home late.',
-            "ja": 'We will "{w}" to school now.',
-            "bEt.h": 'He will "{w}" on the chair.',
-            "ut.h": 'The sun will "{w}" soon.'
+            "le": "She will \"{w}\" a photo.",
+            "de": "Please \"{w}\" me the book.",
+            "a":  "They will \"{w}\" home late.",
+            "ja": "We will \"{w}\" to school now.",
+            "bEt.h": "He will \"{w}\" on the chair.",
+            "ut.h": "The sun will \"{w}\" soon."
         }
 
 
@@ -72,8 +72,8 @@ class PraiseOrHaze(Game):
 
         self.BombTimer(5)
 
-        # If example_text hasn't been set above (normal vocab case), build it
-        if not hasattr(self, 'example_text') or not example_text:
+        # If example_text hasn"t been set above (normal vocab case), build it
+        if not hasattr(self, "example_text") or not example_text:
             example_text = self.build_example_sentence(correct_urdu)
 
         return question_text, example_text, mapped_options, correct_index
@@ -175,7 +175,7 @@ class PraiseOrHaze(Game):
             question_text = f"{first} is not combinable\n"\
                             f"with..."
             helper = "Agentive verbs combine\n" \
-            "with all verbs - except 'ja'."
+            "with all verbs - except \"ja\"."
 
         self.BombTimer(5)
         if self.gamemode == 2:
