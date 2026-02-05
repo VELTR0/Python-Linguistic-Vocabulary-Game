@@ -1,6 +1,8 @@
 import pygame
 import random
 from Game import Game
+import HogansAlley
+Games = [HogansAlley.HogansAlley]
 from Boss_Font import BossFont
 from Vocabulary import agentive_verbs, non_agentive_verbs, ambiguous_verbs
 from CurtainTransition import CurtainTransition
@@ -9,8 +11,7 @@ pygame.init()
 
 # Fix text_loose
 # NEUE frAGEN
-# bOSS NAMEN
-# text wie guter hit some dmg, etc.
+# bOSS NAMEN+
 
 
 class Boss(Game):
@@ -96,14 +97,20 @@ class Boss(Game):
         self.question_waiting = False
         
         self.boss_level = 1
-        self.boss_hp = 30
+        self.boss_hp = 10
         self.boss_hit_active = False
         self.boss_hit_start_time = 0
+
+        # Hit message queue: messages shown when boss takes 10 HP increments
+        self.pending_hit_messages = []
+        self.post_hit_action = None
+        self.hit_message_mode = False
         
         self.lose_active = False
         self.lose_start_time = 0
         self.shake_offset_x = 0
         self.shake_offset_y = 0
+        self.lose_waiting_for_input = False
         
         self.win_active = False
         self.win_start_time = 0
@@ -119,8 +126,13 @@ class Boss(Game):
         self.curtain = CurtainTransition()
         self.curtain_closing = False
         self.curtain_opening = False
+        # When true, all player input is ignored until boss is reinitialized
+        self.block_input_until_reset = False
         
         self.load_sprites()
+        # BeAt Me feature: chance to spawn a HogansAlley challenge from dialog
+        self.be_at_me_chance = 0.3
+        self.be_at_me_triggered = False
 
     def load_sprites(self):
         self.background = pygame.image.load(r"Sprites\Boss\Background.png").convert()
@@ -391,6 +403,31 @@ class Boss(Game):
         else:
             pass
 
+    def attempt_start_questions_or_minigame(self):
+        """Decide whether to start questions or trigger the HogansAlley minigame.
+        `self.be_at_me_chance` may be a probability in [0,1] or a percentage >1.
+        This is called every time before showing questions so the chance is
+        re-evaluated each time."""
+        # normalize chance: treat >1 as percent
+        chance = float(getattr(self, 'be_at_me_chance', 0))
+        if chance > 1.0:
+            chance = chance / 100.0
+
+        if random.random() < chance:
+            # Trigger a transient BeAt Me! prompt (do not modify dialog_screens)
+            self.be_at_me_triggered = True
+            self.current_text_lines = ["BeAt Me!"]
+            self.text_display_active = True
+            self.text_typing_active = True
+            self.text_typing_start_time = pygame.time.get_ticks()
+            self.text_display_progress = 0.0
+            if self.texting_sound:
+                self.texting_sound.play(-1)
+                self.texting_sound_playing = True
+        else:
+            # Start the normal question flow
+            self.show_question()
+
     def update_frame(self, current_time):
         if not self.intro_playing and not self.intro_finished:
             if current_time - self.intro_start_time >= 1300:
@@ -419,12 +456,17 @@ class Boss(Game):
                 self.shake_offset_x = int(Boss.SHAKE_INTENSITY * progress)
                 self.shake_offset_y = int(Boss.SHAKE_INTENSITY * progress)
             else:
-                self.lose_active = False
-                self.shake_offset_x = 0
-                self.shake_offset_y = 0
-                self.curtain_closing = True
-                pygame.mixer.music.stop()
-                self.curtain.start_closing_animation(self.screen, is_success=False)
+                # Enter waiting state: show "You are too weak" until player confirms
+                if not self.lose_waiting_for_input:
+                    self.lose_waiting_for_input = True
+                    self.shake_offset_x = 0
+                    self.shake_offset_y = 0
+                    # stop any music immediately
+                    try:
+                        pygame.mixer.music.stop()
+                    except Exception:
+                        pass
+                # don't auto-start curtain; wait for input in handle_frame_input
         
         # Curtain animations and logic
         if self.curtain_closing:
@@ -463,23 +505,25 @@ class Boss(Game):
         
         if self.win_active:
             elapsed_time = current_time - self.win_start_time
-            
-            # remove Boss
+
+            # remove Boss (slide down)
             if not self.boss_slide_down_active:
                 self.boss_slide_down_active = True
                 self.boss_slide_down_start_time = current_time
-            
+                
+
             if self.boss_slide_down_active:
                 slide_elapsed = current_time - self.boss_slide_down_start_time
                 if slide_elapsed < Boss.BOSS_SLIDE_DOWN_DURATION:
                     progress = slide_elapsed / Boss.BOSS_SLIDE_DOWN_DURATION
                     self.boss_slide_offset_y = int(progress * (self.h + 200))
                 else:
-                    # Ui fade out
+                        # Ui fade out
                     if not self.ui_fade_out_active:
                         self.ui_fade_out_active = True
                         self.ui_fade_out_start_time = current_time
                         self.text_display_active = False
+                        
                     
                     fade_elapsed = current_time - self.ui_fade_out_start_time
                     if fade_elapsed < Boss.UI_FADE_OUT_DURATION:
@@ -501,28 +545,40 @@ class Boss(Game):
                                 self.current_frame = (self.current_frame + 1) % len(self.boss_frames)
                         else:
                             # Loosing stats reset
-                            self.win_active = False
-                            self.boss_slide_down_active = False
-                            self.ui_fade_out_active = False
-                            self.background_anim_active = False
-                            self.boss_slide_offset_y = 0
-                            self.ui_fade_progress = 1.0
-                            
-                            # Increase level and HP
-                            self.boss_level += 1
-                            self.boss_hp = self.boss_hp + (self.boss_level - 1) * 30
-                            
-                            # Reset animation states
-                            self.intro_finished = False
-                            self.intro_playing = False
-                            self.animation_frozen_frame = None
-                            self.boss_fly_in_complete = False
-                            self.boss_jump_active = False
-                            self.boss_hit_active = False
-                            self.stats_animation_complete = False
-                            self.text_animation_complete = False
-                            self.text_display_active = False
-                            self.question_waiting = False
+                            if not self.background_anim_active:
+                                self.background_anim_active = True
+                                self.background_anim_start_time = current_time
+                                
+                            bg_anim_elapsed = current_time - self.background_anim_start_time
+                            if bg_anim_elapsed < Boss.BACKGROUND_ANIM_DURATION:
+                                if current_time - self.last_frame_time >= self.ANIMATION_SPEED:
+                                    self.last_frame_time = current_time
+                                    self.current_frame = (self.current_frame + 1) % len(self.boss_frames)
+                            else:
+                                # finish and reset
+                                
+                                self.win_active = False
+                                self.boss_slide_down_active = False
+                                self.ui_fade_out_active = False
+                                self.background_anim_active = False
+                                self.boss_slide_offset_y = 0
+                                self.ui_fade_progress = 1.0
+
+                                # Increase level and HP
+                                self.boss_level += 1
+                                self.boss_hp = self.boss_hp + (self.boss_level - 1) * 30
+
+                                # Reset animation states
+                                self.intro_finished = False
+                                self.intro_playing = False
+                                self.animation_frozen_frame = None
+                                self.boss_fly_in_complete = False
+                                self.boss_jump_active = False
+                                self.boss_hit_active = False
+                                self.stats_animation_complete = False
+                                self.text_animation_complete = False
+                                self.text_display_active = False
+                                self.question_waiting = False
                             self.selected_answer_index = 0
                             self.lose_active = False
                             self.shake_offset_x = 0
@@ -530,6 +586,8 @@ class Boss(Game):
                             
                             # Reset boss
                             self.current_question_index = 0
+                            # re-enable input now that boss is reset
+                            self.block_input_until_reset = False
                             self.initialize_game(self.screen)
                             return
         
@@ -682,6 +740,10 @@ class Boss(Game):
                         if line:
                             line_text = self.boss_font.render(line, color=(255, 255, 255), scale=4.5)
                             self.screen.blit(line_text, (box_x + 50, box_y + 35 + i * dialog_line_spacing))
+                # If we are waiting after a hit, show a prompt
+                if getattr(self, 'lose_waiting_for_input', False):
+                    prompt = self.boss_font.render("Press SPACE to continue", color=(255, 255, 255), scale=3.0)
+                    self.screen.blit(prompt, (box_x + 50, box_y + 150))
         
         # question and answers
         if self.current_question and self.text_image and not self.win_active:
@@ -743,17 +805,69 @@ class Boss(Game):
                 self.texting_sound.play(-1)
                 self.texting_sound_playing = True
         else:
-            # starts quesations in dialog
-            self.text_display_active = False
-            self.game_state = "question"
-            self.show_question()
+            # Decide whether to trigger a HogansAlley 'BeAt Me!' challenge
+            # Normalize chance: allow either a probability in [0,1] or a percentage >1
+            chance = float(getattr(self, 'be_at_me_chance', 0))
+            if chance > 1.0:
+                chance = chance / 100.0
+
+            if random.random() < chance:
+                # Show a transient "BeAt Me!" screen (do not modify dialog_screens list)
+                self.be_at_me_triggered = True
+                self.current_text_lines = ["BeAt Me!"]
+                self.waiting_for_input = False
+                self.text_typing_active = True
+                self.text_typing_start_time = pygame.time.get_ticks()
+                self.text_display_progress = 0.0
+                if self.texting_sound:
+                    self.texting_sound.play(-1)
+                    self.texting_sound_playing = True
+            else:
+                # Don't start questions immediately; show a final empty dialog
+                # and wait for player to press to either trigger BeAt Me or start questions
+                self.current_text_lines = [""]
+                self.text_display_active = True
+                self.waiting_for_input = True
+                self.text_typing_active = False
+                self.text_display_progress = 1.0
 
     def handle_frame_input(self, events, current_time):
+        # If input is blocked (during win sequence), ignore events
+        if getattr(self, 'block_input_until_reset', False):
+            return
         # Block input during animations
         if not self.intro_finished or self.boss_jump_active:
             return
         
         for event in events:
+            # If we are waiting after a loss, only accept SPACE/RETURN to proceed to curtain
+            if getattr(self, 'lose_waiting_for_input', False) and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                    self.lose_waiting_for_input = False
+                    self.lose_active = False
+                    self.shake_offset_x = 0
+                    self.shake_offset_y = 0
+                    self.curtain_closing = True
+                    try:
+                        pygame.mixer.music.stop()
+                    except Exception:
+                        pass
+                    self.curtain.start_closing_animation(self.screen, is_success=False)
+                    return
+            # If we are waiting after a loss, only accept SPACE/RETURN to proceed to curtain
+            if getattr(self, 'lose_waiting_for_input', False) and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                    self.lose_waiting_for_input = False
+                    self.lose_active = False
+                    self.shake_offset_x = 0
+                    self.shake_offset_y = 0
+                    self.curtain_closing = True
+                    try:
+                        pygame.mixer.music.stop()
+                    except Exception:
+                        pass
+                    self.curtain.start_closing_animation(self.screen, is_success=False)
+                    return
             if event.type == pygame.KEYDOWN:
                 if self.current_question:
                     if not self.question_waiting:
@@ -783,24 +897,23 @@ class Boss(Game):
                                 
                                 self.boss_hit_active = True
                                 self.boss_hit_start_time = pygame.time.get_ticks()
-                                self.boss_hp = max(0, self.boss_hp - 10)
+                                damage = 10
+                                # Prevent answering the same question multiple times
+                                self.current_question = None
+                                self.question_waiting = False
+                                self.boss_hp = max(0, self.boss_hp - damage)
                                 self.hit_sound.play()
-                                
-                                # Win/loose check
+                                # Queue hit messages; resume with win or next question
                                 if self.boss_hp <= 0:
-                                    self.win_active = True
-                                    self.win_start_time = pygame.time.get_ticks()
+                                    self.queue_hit_messages(damage, resume_action='win')
                                 else:
-                                    self.current_question_index += 1
-                                    if self.current_question_index < len(self.questions):
-                                        self.show_question()
-                                    else:
-                                        self.game_state = "game_over"
-                                        self.is_running = False
+                                    self.queue_hit_messages(damage, resume_action='question')
+                                continue
                             else:
                                 self.lose_active = True
                                 self.lose_start_time = pygame.time.get_ticks()
                                 self.hit_sound.play()
+                                continue
                 elif event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                     if self.text_typing_active:
                         self.text_display_progress = 1.0
@@ -810,12 +923,89 @@ class Boss(Game):
                             self.texting_sound.stop()
                             self.texting_sound_playing = False
                     elif self.text_display_active and self.waiting_for_input:
+                        # If we're showing hit messages, advance through them first
+                        if getattr(self, 'hit_message_mode', False):
+                            if self.pending_hit_messages:
+                                self.show_next_hit_message()
+                                return
+                            else:
+                                # finished hit messages: resume queued action
+                                self.hit_message_mode = False
+                                action = self.post_hit_action
+                                self.post_hit_action = None
+                                if action == 'question':
+                                    self.current_question_index += 1
+                                    if self.current_question_index < len(self.questions):
+                                        self.attempt_start_questions_or_minigame()
+                                    else:
+                                        self.game_state = "game_over"
+                                        self.is_running = False
+                                elif action == 'win':
+                                    # Start win sequence cleanly
+                                    self.post_hit_action = None
+                                    self.hit_message_mode = False
+                                    self.pending_hit_messages = []
+                                    self.text_display_active = False
+                                    self.animation_frozen_frame = None
+                                    self.boss_slide_down_active = False
+                                    self.ui_fade_out_active = False
+                                    self.background_anim_active = False
+                                    self.win_active = True
+                                    self.win_start_time = pygame.time.get_ticks()
+                                    # block player input during win animation/reset
+                                    self.block_input_until_reset = True
+                                return
+
+                        # normal dialog flow
                         self.current_screen_index += 1
                         if self.current_screen_index < len(self.dialog_screens):
                             self.next_text()
                         else:
-                            self.text_display_active = False
-                            self.show_question()
+                            if getattr(self, 'post_hit_action', None) and not self.pending_hit_messages:
+                                action = self.post_hit_action
+                                self.post_hit_action = None
+                                if action == 'question':
+                                    self.current_question_index += 1
+                                    if self.current_question_index < len(self.questions):
+                                        self.attempt_start_questions_or_minigame()
+                                    else:
+                                        self.game_state = "game_over"
+                                        self.is_running = False
+                                elif action == 'win':
+                                    self.win_active = True
+                                    self.win_start_time = pygame.time.get_ticks()
+                                    # block input when win triggered from post_hit_action
+                                    self.block_input_until_reset = True
+                            elif getattr(self, 'be_at_me_triggered', False):
+                                self.text_display_active = False
+                                self.be_at_me_triggered = False
+                                try:
+                                    won = self.run_minigames()
+                                except Exception:
+                                    won = False
+
+                                if won:
+                                    damage = 20
+                                    self.boss_hit_active = True
+                                    self.boss_hit_start_time = pygame.time.get_ticks()
+                                    # clear any active question to avoid double-answers
+                                    self.current_question = None
+                                    self.question_waiting = False
+                                    self.boss_hp = max(0, self.boss_hp - damage)
+                                    self.hit_sound.play()
+                                    if self.boss_hp <= 0:
+                                        self.queue_hit_messages(damage, resume_action='win')
+                                    else:
+                                        self.queue_hit_messages(damage, resume_action='question')
+                                else:
+                                    # Treat as incorrect answer: trigger lose animation (handled in update_frame)
+                                    self.lose_active = True
+                                    self.lose_start_time = pygame.time.get_ticks()
+                                    self.hit_sound.play()
+                            else:
+                                # Randomly decide to show 'BeAt Me!' prompt instead of questions
+                                    # decide whether to show BeAtMe or questions every time
+                                    self.attempt_start_questions_or_minigame()
                     else:
                         self.is_running = False
 
@@ -824,3 +1014,90 @@ class Boss(Game):
 
     def on_resume(self, paused_duration):
         super().on_resume(paused_duration)
+
+    def run_minigames(self):
+        """Select a minigame from `Games`, run it once (blocking) with gamemode=3.
+        Returns True if the player 'won' (score > 0), False otherwise."""
+        if not Games:
+            return False
+
+        GameClass = random.choice(Games)
+        clock = pygame.time.Clock()
+        game_instance = GameClass(gamemode=3, playerName=self.playerName)
+        game_instance.initialize_game(self.screen)
+        game_instance.game_actually_started = True
+        start_score = getattr(game_instance, 'score', 0)
+
+        while game_instance.is_running:
+            current_time = pygame.time.get_ticks()
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    game_instance.is_running = False
+                    self.is_running = False
+                    return False
+
+            # Most minigames implement the same methods as Game
+            try:
+                game_instance.handle_frame_input(events, current_time)
+            except TypeError:
+                # Fallback: some games expect different params
+                try:
+                    game_instance.handle_frame_input(events)
+                except Exception:
+                    pass
+
+            game_instance.update_frame(current_time)
+            pygame.display.flip()
+            clock.tick(60)
+
+        final_score = getattr(game_instance, 'score', 0)
+        won = final_score > start_score
+
+        # Soft stop minigame music on success
+        try:
+            if won:
+                pygame.mixer.music.fadeout(500)
+            else:
+                # ensure music is stopped/paused to avoid leaking into boss
+                pygame.mixer.music.stop()
+        except Exception:
+            try:
+                pygame.mixer.music.stop()
+            except Exception:
+                pass
+
+        return won
+
+    def queue_hit_messages(self, damage, resume_action='question'):
+        """Queue one message per 10 HP of damage; when messages finish,
+        `post_hit_action` contains the resume_action to perform."""
+        # If already showing hit messages, don't queue more
+        if getattr(self, 'hit_message_mode', False):
+            return
+
+        messages = ["You hit him!", "That hurt a bit", "Good Job!"]
+        # Only a single random message per damage event
+        msg = random.choice(messages)
+        self.pending_hit_messages = [msg]
+        # Ensure any lose state is cleared so hit messages can be acknowledged
+        self.post_hit_action = resume_action
+        self.lose_active = False
+        self.lose_waiting_for_input = False
+        # prevent curtain from auto-closing while handling hit messages
+        self.curtain_closing = False
+        self.hit_message_mode = True
+        # show it immediately
+        self.show_next_hit_message()
+
+    def show_next_hit_message(self):
+        if not self.pending_hit_messages:
+            # nothing to show
+            return
+        next_msg = self.pending_hit_messages.pop(0)
+        self.current_text_lines = [next_msg]
+        self.text_display_active = True
+        self.text_typing_active = True
+        self.text_typing_start_time = pygame.time.get_ticks()
+        self.text_display_progress = 0.0
+        self.waiting_for_input = False
