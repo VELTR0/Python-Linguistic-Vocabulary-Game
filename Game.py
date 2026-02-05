@@ -143,12 +143,11 @@ class Game:
 
                 return correct_urdu, correct_classification, options, correct_index, "agentive"
 
-                        
+        # Creates 1 correct and some incorrect verb pair combinations based on these 2 rules:
+        # - If first word is from agentive_verbs: second can be from agentive_verbs OR non_agentive_verbs
+        # - If first word is from non_agentive_verbs: second can be from non_agentive_verbs OR ambiguous_verbs           
         elif gamemode == 2:
-            # Creates 1 correct and some incorrect verb pair combinations based on these 2 rules:
-            # - If first word is from agentive_verbs: second can be from agentive_verbs OR non_agentive_verbs
-            # - If first word is from non_agentive_verbs: second can be from non_agentive_verbs OR ambiguous_verbs
-
+            
             first_verb_pool = list(Vocabulary.agentive_verbs.keys()) + list(Vocabulary.non_agentive_verbs.keys())
             correct_first_word = random.choice(first_verb_pool)
             first_verb_type = None
@@ -257,7 +256,6 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     import PraiseOrHaze
     import QuickieQuiz
     import ZeldaRipoff
-    import Boss
     
     pygame.display.set_mode((1024, 768))
 
@@ -299,9 +297,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    if gamemode == 3:
-        Games = [Boss.Boss]
-    else: Games = [PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz, HogansAlley.HogansAlley]
+    Games = [PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz, HogansAlley.HogansAlley]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # DO NOT initialize game yet - wait until curtain animation is complete

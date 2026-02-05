@@ -39,14 +39,13 @@ The last gamemode is a test, consisting of a round based game where the player h
 ![alt text](DocFiles/QuizAgentive.png.png)
 
 ### Hogans Alley
-![alt text](DocFiles/HogansAlleyOpening.png)
 ![alt text](DocFiles/HogansAlley.png)
 
 ### Praize or Haze
-
+![alt text](DocFiles/PraiseOrHaze.png)
 
 ### Boss
-
+![alt text](DocFiles/Boss.png)
 
 ### Menu
 
