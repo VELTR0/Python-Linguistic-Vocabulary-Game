@@ -1,5 +1,4 @@
 import pygame
-import pygame_menu
 import random
 from Font import SpriteFont
 from Game import Game
@@ -8,13 +7,13 @@ pygame.init()
 # TODO agentive/non agentive
 
 class HogansAlley(Game):
-    DISPLAY_TIME = 1000  
-    WAIT_TIME = 1800
+    DISPLAY_TIME = 1500  
+    WAIT_TIME = 2500
     ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
     BOMB_TIMER_SECONDS = 6
     
     def __init__(self, gamemode=1, playerName="Player"):
-        super().__init__(gamemode, playerName=playerName)
+        super().__init__(gamemode, num_words=4, playerName=playerName)
         self.GAMEMODE = gamemode
         self.font_options = SpriteFont()
         self.load_sprites()
@@ -38,6 +37,8 @@ class HogansAlley(Game):
         self.barrel_farleft_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarLeft.png")
         self.barrel_farright_image = pygame.image.load(r"Sprites\HogansAlley\BarrelFarRight.png")
         self.monitor_image = pygame.image.load(r"Sprites\HogansAlley\Monitor.png")
+        self.card_image = pygame.image.load(r"Sprites\QuickieQuiz\Card.png")
+        self.anon_image = pygame.image.load(r"Sprites\HogansAlley\Anon.png")
     
     def scale_assets(self, screen):
         assets = {}
@@ -73,6 +74,12 @@ class HogansAlley(Game):
         assets['barrel_farleft_scaled'] = pygame.transform.scale(self.barrel_farleft_image, (barrel_width, barrel_height))
         assets['barrel_farright_scaled'] = pygame.transform.scale(self.barrel_farright_image, (barrel_width, barrel_height))
         assets['monitor_scaled'] = pygame.transform.scale(self.monitor_image, (screen.get_width(), screen.get_height()))
+        
+        card_width = int(assets['character_scale'][0] * 0.9)
+        card_height = int(assets['character_scale'][1] * 0.18)
+        assets['card_scaled'] = pygame.transform.scale(self.card_image, (card_width, card_height))
+        
+        assets['anon_scaled'] = pygame.transform.scale(self.anon_image, assets['character_scale'])
         
         return assets
     
@@ -132,7 +139,8 @@ class HogansAlley(Game):
                 stick_rect = stick_scaled.get_rect(center=(cx, y))
                 screen.blit(stick_scaled, stick_rect)
 
-            for i, word in enumerate(options):
+            for i in range(len(options)):
+                word = options[i]
                 cx, cy = centers[i]
                 
                 if selection_made and i == selected_index:
@@ -142,10 +150,33 @@ class HogansAlley(Game):
                         screen.blit(current_animation_frame, anim_rect)
                 else:
                     char_rect = character_sprites[i].get_rect(center=(cx, cy-20))
-                    screen.blit(character_sprites[i], char_rect)
-                    text_surface = self.font_options.render(word, color=(255, 255, 255))
+                    # For gamemode 3: Hide characters
+                    if self.GAMEMODE == 3 and not selection_made:
+                        screen.blit(self.anon_scaled, char_rect)
+                    else:
+                        screen.blit(character_sprites[i], char_rect)
+                    
+                    # Rendering Cards
+                    char_bottom_y = (cy-60) + character_scale[1]/2
+                    card_rect = self.card_scaled.get_rect(midtop=(cx, char_bottom_y))
+                    screen.blit(self.card_scaled, card_rect)
+                    
+                    # Text on the Cards - determine display based on word_type
+                    if self.current_word_type == "agentive":
+                        if word == "agentive":
+                            display_text = "Yes"
+                        else:
+                            display_text = "No"
+                    elif self.current_word_type == "english":
+                        display_text = word
+                    elif self.current_word_type == "urdu":
+                        display_text = word
+                    elif self.current_word_type == "verb_pair":
+                        display_text = word
+                    
+                    text_surface = self.font_options.render(display_text, color=(255, 255, 255))
                     text_surface = pygame.transform.scale_by(text_surface, 2.5)
-                    text_rect = text_surface.get_rect(center=(cx, cy))
+                    text_rect = text_surface.get_rect(center=(card_rect.centerx, card_rect.centery))
                     screen.blit(text_surface, text_rect)
                 
                 if i == selected_index:
@@ -160,8 +191,15 @@ class HogansAlley(Game):
                     crosshair_rect = crosshair_scaled.get_rect(center=(cx, cy))
                     screen.blit(crosshair_scaled, crosshair_rect)
 
+        # Display prompt
         if show_urdu_display:
-            prompt_surface = self.font_options.render(("The Thug is... " + display_word), color=(255, 255, 0))
+            if self.current_word_type == "agentive":
+                prompt_text = "Is " + display_word + " agentive?"
+            elif self.current_word_type == "verb_pair":
+                prompt_text = display_word + " works with..."
+            else:
+                prompt_text = "The Thug is \"" + display_word + "\""
+            prompt_surface = self.font_options.render(prompt_text, color=(255, 255, 0))
             prompt_surface = pygame.transform.scale_by(prompt_surface, 5)
             prompt_rect = prompt_surface.get_rect(center=(screen.get_width()/2, screen.get_height()/3))
             screen.blit(prompt_surface, prompt_rect)
@@ -224,9 +262,10 @@ class HogansAlley(Game):
         self.last_action_time = 0
         self.round_start_time = pygame.time.get_ticks()
         self.show_urdu_display = True
-        self.current_word_type = "english"
+        self.current_word_type = None
         self.animation_frame_index = 0
         self.last_frame_time = 0
+        self.agentive_question = False
 
         # Music
         pygame.mixer.music.stop()
@@ -247,6 +286,8 @@ class HogansAlley(Game):
         self.barrel_farright_scaled = scaled_assets['barrel_farright_scaled']
         self.barrel_mid_scaled = scaled_assets['barrel_mid_scaled']
         self.monitor_scaled = scaled_assets['monitor_scaled']
+        self.card_scaled = scaled_assets['card_scaled']
+        self.anon_scaled = scaled_assets['anon_scaled']
 
         self.animation_frames = [scaled_assets['hit_scaled'], self.unfolding_scaled, None, 
                           scaled_assets['unfolding_flash_scaled'], scaled_assets['hit_flash_scaled'], 
@@ -254,7 +295,8 @@ class HogansAlley(Game):
         self.frame_duration = 150
 
         # Start first round
-        self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
+        self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words(self.gamemode)
+        self.agentive_question = (self.current_word_type == "agentive")
         self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
         self.BombTimer(self.BOMB_TIMER_SECONDS)
     
@@ -275,7 +317,6 @@ class HogansAlley(Game):
     
     def update_frame(self, current_time):
         n = len(self.options)
-        
         # Check if timer ran out (and not already answered)
         if not self.selection_made and self._bomb_timer_just_ended:
             self.check_answer(-1, self.correct_index)
@@ -301,7 +342,9 @@ class HogansAlley(Game):
         
         # Start new round if needed
         if new_round_needed:
-            self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words()
+            self.correct_urdu, self.correct_english, self.options, self.correct_index, self.current_word_type = self.pick_random_words(self.gamemode)
+            if self.current_word_type == "agentive":
+                self.agentive_question = True
             self.character_sprites = self.assign_character_sprites(self.correct_index, len(self.options), self.thug_sprites, self.civilian_sprites)
             self.show_correct = False
             self.show_wrong = False
@@ -319,10 +362,17 @@ class HogansAlley(Game):
         spacing = self.screen.get_width() / (n + 1)
         y = self.screen.get_height() / 2
         centers = [(spacing * (i + 1), y) for i in range(n)]
-        
+
         # Display word to translate
-        display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
-        
+        if self.agentive_question:
+            display_word = self.correct_urdu
+        elif self.current_word_type == "verb_pair":
+            display_word = self.correct_urdu
+        else:
+            if self.current_word_type == "english":
+                display_word = self.correct_urdu 
+            else:
+                display_word = self.correct_english        
         # Rendering
         self.render_game(
             self.screen, self.show_urdu_display, current_time, self.round_start_time,

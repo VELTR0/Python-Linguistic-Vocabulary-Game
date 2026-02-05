@@ -1,5 +1,4 @@
 import pygame
-import Vocabulary
 import random
 from Game import Game
 from Font import SpriteFont
@@ -10,6 +9,7 @@ pygame.init()
 class QuickieQuiz(Game):
     DISPLAY_TIME = 3000
     ANSWER_DISPLAY_TIME = 1000
+    BOMB_TIMER_SECONDS = 4
     
     def __init__(self, gamemode=1, playerName="Player"):
         super().__init__(gamemode, playerName=playerName)
@@ -48,44 +48,8 @@ class QuickieQuiz(Game):
         assets['wrong_scaled'] = pygame.transform.scale(self.wrong_image, (card_width, card_height))
         
         return assets
-    
-    def pick_random_words_quickiequiz(self):
-        wordpair = random.choice(list(Vocabulary.lightVerbs.items()))
-        correct_urdu = wordpair[0]
-        correct_english = wordpair[1]
-        
-        available_positions = ["top", "bottom", "left", "right"]
-        num_false_options = 3
-        
-        # English or Urdu
-        word_type = random.choice(["english", "urdu"])
-        if word_type == "english":
-            false_options_list = list(Vocabulary.lightVerbs.values())
-            false_options_list.remove(correct_english)
-            false_options = random.sample(false_options_list, num_false_options)
-            correct_word = correct_english
-        else:
-            false_options_list = list(Vocabulary.lightVerbs.keys())
-            false_options_list.remove(correct_urdu)
-            false_options = random.sample(false_options_list, num_false_options)
-            correct_word = correct_urdu
-        
-        # Placing of the words
-        correct_position = random.choice(available_positions)
-        options = {}
-        all_options = [correct_word] + false_options
-        random.shuffle(all_options)
-        for i, position in enumerate(available_positions):
-            if position == correct_position:
-                options[position] = correct_word
-            else:
-                false_option = next(opt for opt in all_options if opt != correct_word and opt not in options.values())
-                options[position] = false_option
 
-        self.BombTimer(4)
-        return correct_urdu, correct_english, correct_position, options, word_type
-    
-        # Note: Game will end after ANSWER_DISPLAY_TIME in update_frame()
+
     
     def initialize_game(self, screen):
         self.is_running = True
@@ -103,15 +67,16 @@ class QuickieQuiz(Game):
         self.last_action_time = 0
         self.selected_direction = None
         self.round_start_time = pygame.time.get_ticks()
-        self.show_urdu_display = True
-        self.current_word_type = "english"
+        self.show_word_display = True
+        self.current_word_type = None
+        self.agentive_question = False
 
         # Music
         pygame.mixer.music.stop()
         pygame.mixer.music.load(r"Sounds/PenguinShuffle.ogg")
         pygame.mixer.music.play(-1)
         
-        # Scale assets
+        # Scaling of the assets
         scaled_assets = self.scale_assets(screen)
         self.background_scaled = scaled_assets['background_scaled']
         self.dpad_scaled = scaled_assets['dpad_scaled']
@@ -129,7 +94,17 @@ class QuickieQuiz(Game):
         }
         
         # Start first round
-        self.correct_urdu, self.correct_english, self.correct_position, self.options, self.current_word_type = self.pick_random_words_quickiequiz()
+        self.start_round()
+    
+    def start_round(self):
+        self.correct_urdu, self.correct_english, options, correct_index, self.current_word_type = self.pick_random_words(self.gamemode)
+        positions = ["top", "bottom", "left", "right"]
+        chosen_positions = random.sample(positions, len(options))
+        self.options = dict(zip(chosen_positions, options))
+        self.correct_position = chosen_positions[correct_index]
+        if len(options) == 2:
+            self.agentive_question = True
+        self.BombTimer(self.BOMB_TIMER_SECONDS)
     
     def handle_frame_input(self, events, current_time):
         for event in events:
@@ -138,10 +113,16 @@ class QuickieQuiz(Game):
                 pressed_position = key_to_position.get(event.key)
                 
                 if pressed_position and pressed_position in self.options:
-                    self.check_answer(pressed_position, self.correct_position)
+                    is_correct = self.check_answer(pressed_position, self.correct_position)
                     self.selected_direction = pressed_position
                     self.selection_made = True
                     self.last_action_time = current_time
+
+                    # For the wrong/right sprites
+                    if is_correct:
+                        self.show_correct = True
+                    else:
+                        self.show_wrong = True
     
     def update_frame(self, current_time):
         # Check if timer ran out (and not already answered)
@@ -157,18 +138,18 @@ class QuickieQuiz(Game):
             self.is_running = False
             return
         
-        # Timer logic
-        if self.show_urdu_display and current_time - self.round_start_time >= self.DISPLAY_TIME:
-            self.show_urdu_display = False
+        # Timer
+        if self.show_word_display and current_time - self.round_start_time >= self.DISPLAY_TIME:
+            self.show_word_display = False
         
         if self.selection_made and current_time - self.last_action_time >= self.DISPLAY_TIME:
-            self.correct_urdu, self.correct_english, self.correct_position, self.options, self.current_word_type = self.pick_random_words_quickiequiz()
+            self.start_round()
             self.show_correct = False
             self.show_wrong = False
             self.selection_made = False
             self.selected_direction = None
             self.round_start_time = current_time
-            self.show_urdu_display = True
+            self.show_word_display = True
         
         # Rendering
         self.screen.blit(self.background_scaled, (0, 0))
@@ -180,39 +161,56 @@ class QuickieQuiz(Game):
         else:
             self.screen.blit(self.dpad_scaled, self.dpad_scaled.get_rect(center=dpad_center))
         
-        # Render option cards
+        # Rendering the Cards
         for position, word in self.options.items():
             x, y = self.position_coords[position]
-            
-            # Card
             card_rect = self.card_scaled.get_rect(center=(x, y))
             self.screen.blit(self.card_scaled, card_rect)
             
-            # Text
-            text_surface = self.font_options.render(word, color =(255, 255, 255))
+            # Text on the Cards
+            if self.current_word_type == "agentive":
+                if word == "agentive":
+                    display_text = "Yes"
+                else:
+                    display_text = "No"
+            elif self.current_word_type == "english":
+                display_text = word
+            elif self.current_word_type == "urdu":
+                display_text = word
+            elif self.current_word_type == "verb_pair":
+                display_text = word
+            else:
+                display_text = word
+            text_surface = self.font_options.render(display_text, color =(255, 255, 255))
             text_surface = pygame.transform.scale_by(text_surface, 3.0)
             text_rect = text_surface.get_rect(center=(x, y))
             self.screen.blit(text_surface, text_rect)
+
+            # Render the wrong words after user input
+            if self.selection_made:
+                if self.show_wrong and position != self.correct_position:
+                    self.screen.blit(self.wrong_scaled, card_rect)
             
-            
-            # Correct sprite
-            if self.show_correct and self.correct_display_position == position:
-                self.screen.blit(self.correct_scaled, card_rect)
-            
-            # Wrong sprite
-            if self.show_wrong and self.correct_position != position:
-                self.screen.blit(self.wrong_scaled, card_rect)
-        
         # Correct Word Display
-        if self.show_urdu_display:
-            display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
-            text = f" {display_word}"
-            large_surface = self.font_options.render((self.playerName + " is " + "..."  + text), color=(255, 255, 0))
+        if self.show_word_display:
+            if self.current_word_type == "agentive":
+                display_word = self.correct_urdu
+                display_text = f"Is \"{display_word}\" agentive?"
+            elif self.current_word_type == "english":
+                display_word = self.correct_urdu
+                display_text = f"\"{display_word}\" means..."
+            elif self.current_word_type == "urdu":
+                display_word = self.correct_english
+                display_text = f"\"{display_word}\" means..."
+            elif self.current_word_type == "verb_pair":
+                display_word = self.correct_urdu
+                display_text = f"\"{display_word}\" fits with"
+            
+            large_surface = self.font_options.render(display_text, color=(255, 255, 0))
             large_surface = pygame.transform.scale_by(large_surface, 5)
             large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
             self.screen.blit(large_surface, large_rect)
         
-        # Draw timer on top of everything
         self.bomb_logic(current_time)
     
     def on_pause(self):

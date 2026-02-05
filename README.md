@@ -28,6 +28,18 @@ In the beginning i had mny problems with the right scaling of the sprites and ge
 - This
 - Thas
 
+## Interesting Codesnippets
+### Combining dicts
+
+    if len(options_list) == 2:
+        positions = ["left", "right"]
+    else:
+        positions = ["top", "bottom", "left", "right"]
+
+    random.shuffle(positions)
+
+    options = dict(zip(positions, options_list))
+
 
 ### Together
 - The Main logic in Game
