@@ -50,6 +50,7 @@ class PraiseOrHaze(Game):
         # Gamemode 2: Task 2 (verb-combination rules)
         if self.gamemode == 2:
             return self.build_questiontask2()
+            
 
         # Gamemode 1: Task 1 (vocab meaning)
         correct_urdu, correct_english, options, correct_index, word_type = self.pick_random_words(self.gamemode)
@@ -69,11 +70,16 @@ class PraiseOrHaze(Game):
             else:
                 mapped_options.append(opt)
 
+        if self.gamemode == 3:
+            example_text = ""            
+
         self.BombTimer(5)
 
         # If example_text hasn"t been set above (normal vocab case), build it
         if not hasattr(self, "example_text") or not example_text:
             example_text = self.build_example_sentence(correct_urdu)
+
+
 
         return question_text, example_text, mapped_options, correct_index
 
@@ -186,6 +192,9 @@ class PraiseOrHaze(Game):
 
     def build_example_sentence(self, urdu_word: str) -> str:
         template = self.exampleSentences.get(urdu_word)
+
+        if self.gamemode == 3:
+            return ""
 
         if template:
             try:
