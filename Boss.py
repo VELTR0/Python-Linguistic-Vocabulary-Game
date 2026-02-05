@@ -4,11 +4,13 @@ from Game import Game
 from Boss_Font import BossFont
 from Vocabulary import agentive_verbs, non_agentive_verbs, ambiguous_verbs
 from CurtainTransition import CurtainTransition
+import HogansAlley
+Games = [HogansAlley.HogansAlley]
 
 pygame.init()
 
 class Boss(Game):
-    ANIMATION_SPEED = 150
+    ANIMATION_SPEED = 85
     TEXT_TYPING_DURATION = 400
     ANSWER_TYPING_DURATION = 600
     BOSS_HIT_DURATION = 1000
@@ -59,7 +61,7 @@ class Boss(Game):
         self.boss_jump_offset_y = 0
         
         self.boss_font = None
-        self.boss_names = ["Ganon", "Wario", "Sauron", "Bowser", "Vader", "Thanos", "Sidious", "Minotaur", "Medusa", "Zanto", "Pirate"]
+        self.boss_names = ["Ganon", "Wario", "Sauron", "Bowser", "Vader", "Thanos", "Sidious", "Minotaur", "Medusa", "Zanto", "The Pirate"]
         self.boss_name = "Ganon"
         
         self.dialog_raw_texts = []
@@ -1025,8 +1027,6 @@ class Boss(Game):
     def run_minigames(self):
         if not Games:
             return False
-        import HogansAlley
-        Games = [HogansAlley.HogansAlley]
 
         GameClass = random.choice(Games)
         clock = pygame.time.Clock()
