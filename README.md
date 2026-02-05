@@ -38,19 +38,19 @@ All games ask the player with a prompted question to choose between 2-4 options.
 
 ### Quickie Quiz
 This game shows the player 2-4 directions (up, down, left, right) as a choice to choose an option from. This can be done by simply pressing one of the keybuttons \(\leftarrow \), \(\uparrow \), \(\downarrow \) or \(\rightarrow \) corresponding to the options. When the players choses the right option, it will be marked as correct and the next round begins. If the player chose the wrong option, all the wrong options are shown as incorrect and the next round begins. 
-![alt text](DocFiles/QuickieQuiz.png)
+![alt text](DocFiles/QuickieQuiz.png){width=500}
 
 ### Hogans Alley
-This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question.
-![alt text](DocFiles/HogansAlley.png)
+This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Test gamemode this game hides the characters before the selection was made
+![alt text](DocFiles/HogansAlley.png){width=500}
 
 ### Praize or Haze
 This game shows the player a question together with a hint to the corect answer. Below that are the options to chose from with the keybuttons \(\uparrow \) and \(\downarrow \). The selection has to be verified by pressin Enter.
-![alt text](DocFiles/PraiseOrHaze.png)
+![alt text](DocFiles/PraiseOrHaze.png){width=500}
 
 ### Boss
 This game is only playable by starting the "Test" gamemode. The player encounters different enemies. Each enemy has a certain amount of HP. The goal is to reduce the enemy's HP to 0. This can be done by answering the prompted questions in the chat correctly. The answers can be picked by pressing the keybuttons \(\leftarrow \), \(\uparrow \), \(\downarrow \) or \(\rightarrow \) and pressing the Enter button.
-![alt text](DocFiles/Boss.png)
+![alt text](DocFiles/Boss.png){width=500}
 
 ### Menu
 The menu isan edited version of the default menu from the package pygame_menu.
