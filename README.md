@@ -45,7 +45,7 @@ This game gives the player options chosen from left to right and can have as man
 ![alt text](DocFiles/HogansAlley.png){width=500} ![alt text](DocFiles/HogansAlleyTest.png){width=522}
 
 ### Praize or Haze
-This game shows the player a question together with a hint to the corect answer. Below that are the options to chose from with the keybuttons \(\uparrow \) and \(\downarrow \). The selection has to be verified by pressin Enter.
+This game shows the player a question together with a hint to the corect answer. Below that are the options to chose from with the keybuttons \(\uparrow \) and \(\downarrow \). The selection has to be verified by pressin Enter. The hints for the correct answer are individually created for each single answer possibility.
 ![alt text](DocFiles/PraiseOrHaze.png){width=500}
 
 ### Boss
