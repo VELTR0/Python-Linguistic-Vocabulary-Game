@@ -90,6 +90,49 @@ Additionally he implemented:
 
 With the "zip" function we were able to combine lists into a dictionary. This helped us a lot because our fundamental data structure used for the answers and options are dictionaries. Dictionaries have a value and key. Therefore we can always find the key or the value if we only have on od those. This matches perfect for a "question-answer" structure like vocabularies in our case.
 
+This is our Vocabulary file where we defined the possible classes and translations for the verbs as dictionaries:
+
+    lightVerbs = {
+        "le": "take",
+        "de": "give",
+        "a": "come",
+        "ja": "go",
+        "bEt.h": "sit",
+        "ut.h": "rise"
+    }
+
+    lightVerbsAgentive = {
+        "le": "agentive",
+        "de": "agentive",
+        "a": "non-agentive",
+        "ja": "non-agentive",
+        "bEt.h": "non-agentive",
+        "ut.h": "non-agentive"
+    }
+
+    agentive_verbs = {
+        "le": "take",
+        "de": "give",
+        "mar": "hit",
+        "duba": "dunk",
+        "ga": "sing",
+        "sikh": "learn",
+        "kha": "eat",
+        "pi": "drink",
+        "d.al": "put"
+    }
+
+    non_agentive_verbs = {
+        "a": "come",
+        "ut.h": "rise",
+        "par.": "fall",
+        "bEt.h": "sit",
+    }
+
+    ambiguous_verbs = {
+        "ja": "go"
+    }
+
 
 ### Together
 - The Main logic in Game

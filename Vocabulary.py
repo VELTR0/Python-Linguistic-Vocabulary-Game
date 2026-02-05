@@ -17,7 +17,6 @@ lightVerbsAgentive = {
     "ut.h": "non-agentive"
 }
 
-# For Task 2
 agentive_verbs = {
     "le": "take",
     "de": "give",
