@@ -41,11 +41,11 @@ This game shows the player 2-4 directions (up, down, left, right) as a choice to
 ![alt text](DocFiles/QuickieQuiz.png){width=500}
 
 ### Hogans Alley
-This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Test gamemode this game hides the characters before the selection was made
-![alt text](DocFiles/HogansAlley.png){width=500}
+This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Test gamemode this game hides the characters before the selection was made to prevent hints for the player.
+![alt text](DocFiles/HogansAlley.png){width=500} ![alt text](DocFiles/HogansAlleyTest.png){width=522}
 
 ### Praize or Haze
-This game shows the player a question together with a hint to the corect answer. Below that are the options to chose from with the keybuttons \(\uparrow \) and \(\downarrow \). The selection has to be verified by pressin Enter.
+This game shows the player a question together with a hint to the corect answer. Below that are the options to chose from with the keybuttons \(\uparrow \) and \(\downarrow \). The selection has to be verified by pressin Enter. The hints for the correct answer are individually created for each single answer possibility.
 ![alt text](DocFiles/PraiseOrHaze.png){width=500}
 
 ### Boss
@@ -89,6 +89,49 @@ Additionally he implemented:
     options = dict(zip(positions, options_list))
 
 With the "zip" function we were able to combine lists into a dictionary. This helped us a lot because our fundamental data structure used for the answers and options are dictionaries. Dictionaries have a value and key. Therefore we can always find the key or the value if we only have on od those. This matches perfect for a "question-answer" structure like vocabularies in our case.
+
+This is our Vocabulary file where we defined the possible classes and translations for the verbs as dictionaries:
+
+    lightVerbs = {
+        "le": "take",
+        "de": "give",
+        "a": "come",
+        "ja": "go",
+        "bEt.h": "sit",
+        "ut.h": "rise"
+    }
+
+    lightVerbsAgentive = {
+        "le": "agentive",
+        "de": "agentive",
+        "a": "non-agentive",
+        "ja": "non-agentive",
+        "bEt.h": "non-agentive",
+        "ut.h": "non-agentive"
+    }
+
+    agentive_verbs = {
+        "le": "take",
+        "de": "give",
+        "mar": "hit",
+        "duba": "dunk",
+        "ga": "sing",
+        "sikh": "learn",
+        "kha": "eat",
+        "pi": "drink",
+        "d.al": "put"
+    }
+
+    non_agentive_verbs = {
+        "a": "come",
+        "ut.h": "rise",
+        "par.": "fall",
+        "bEt.h": "sit",
+    }
+
+    ambiguous_verbs = {
+        "ja": "go"
+    }
 
 
 ### Together
