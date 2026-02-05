@@ -53,7 +53,7 @@ class PraiseOrHaze(Game):
             return self.build_questiontask2()
 
         # Gamemode 1: Task 1 (vocab meaning)
-        correct_urdu, correct_english, options, correct_index, word_type = self.pick_random_words()
+        correct_urdu, correct_english, options, correct_index, word_type = self.pick_random_words(self.gamemode)
 
         # ALWAYS ask in URDU
         question_text = f"{correct_urdu} means..."
