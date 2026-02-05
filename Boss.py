@@ -92,7 +92,7 @@ class Boss(Game):
         self.question_waiting = False
         
         self.boss_level = 1
-        self.boss_hp = 10
+        self.boss_hp = 30
         self.boss_hit_active = False
         self.boss_hit_start_time = 0
 
@@ -539,7 +539,7 @@ class Boss(Game):
                 self.curtain_closing = False
                 self.curtain_opening = True
                 
-                # Reset game state
+                # Reset game state if lost
                 self.boss_level = 1
                 self.boss_hp = 30
                 
@@ -915,17 +915,17 @@ class Boss(Game):
                                 
                                 self.boss_hit_active = True
                                 self.boss_hit_start_time = pygame.time.get_ticks()
-                                damage = 10
+                                dmg = 10
                                 # Prevent answering the same question multiple times
                                 self.current_question = None
                                 self.question_waiting = False
-                                self.boss_hp = max(0, self.boss_hp - damage)
+                                self.boss_hp = max(0, self.boss_hp - dmg)
                                 self.hit_sound.play()
                                 # Queue hit messages; resume with win or next question
                                 if self.boss_hp <= 0:
-                                    self.queue_hit_messages(damage, resume_action="win")
+                                    self.queue_hit_messages(dmg, resume_action="win")
                                 else:
-                                    self.queue_hit_messages(damage, resume_action="question")
+                                    self.queue_hit_messages(dmg, resume_action="question")
                                 continue
                             else:
                                 self.lose_active = True
@@ -996,18 +996,18 @@ class Boss(Game):
                                     won = False
 
                                 if won:
-                                    damage = 20
+                                    dmg = 20
                                     self.boss_hit_active = True
                                     self.boss_hit_start_time = pygame.time.get_ticks()
                                     # clear active question
                                     self.current_question = None
                                     self.question_waiting = False
-                                    self.boss_hp = max(0, self.boss_hp - damage)
+                                    self.boss_hp = max(0, self.boss_hp - dmg)
                                     self.hit_sound.play()
                                     if self.boss_hp <= 0:
-                                        self.queue_hit_messages(damage, resume_action="win")
+                                        self.queue_hit_messages(dmg, resume_action="win")
                                     else:
-                                        self.queue_hit_messages(damage, resume_action="question")
+                                        self.queue_hit_messages(dmg, resume_action="question")
                                 else:
                                     self.lose_active = True
                                     self.lose_start_time = pygame.time.get_ticks()
@@ -1072,11 +1072,11 @@ class Boss(Game):
 
         return won
 
-    def queue_hit_messages(self, damage, resume_action="question"):
+    def queue_hit_messages(self, dmg, resume_action="question"):
         if getattr(self, "hit_message_mode", False):
             return
 
-        messages = ["You hit him!", "That hurt a bit", "Good Job!"]
+        messages = ["You hit him!", "That hurt a bit.", "Good Job!"]
         msg = random.choice(messages)
         self.pending_hit_messages = [msg]
         self.post_hit_action = resume_action
