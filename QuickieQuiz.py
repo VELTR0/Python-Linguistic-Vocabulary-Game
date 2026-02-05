@@ -1,5 +1,4 @@
 import pygame
-import Vocabulary
 import random
 from Game import Game
 from Font import SpriteFont

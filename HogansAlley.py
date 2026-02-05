@@ -1,5 +1,4 @@
 import pygame
-import pygame_menu
 import random
 from Font import SpriteFont
 from Game import Game
