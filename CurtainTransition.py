@@ -5,8 +5,6 @@ pygame.init()
 
 
 class CurtainTransition:
-    """Handles the curtain opening and closing animations between games."""
-    
     def __init__(self):
         self.closed_frames = []
         self.open_frames = []
@@ -26,7 +24,6 @@ class CurtainTransition:
         self.load_sprites()
     
     def load_sprites(self):
-        """Load all curtain animation frames."""
         try:
             # Load closed frames (1-3)
             for i in range(1, 4):
@@ -68,8 +65,7 @@ class CurtainTransition:
         except Exception as e:
             print(f"Error loading curtain sprites: {e}")
     
-    def start_opening_animation(self, screen, duration_ms=1000):
-        """Start the curtain opening animation (closed -> open)."""
+    def start_opening_animation(self, screen, duration_ms=1000):        
         self.screen = screen
         self.is_animating = True
         self.animation_type = "opening"
@@ -79,7 +75,6 @@ class CurtainTransition:
             self.transition_sound.play()
     
     def start_closing_animation(self, screen, duration_ms=1000, is_success=False):
-        """Start the curtain closing animation (open -> closed)."""
         self.screen = screen
         self.is_animating = True
         self.animation_type = "closing"
@@ -95,7 +90,6 @@ class CurtainTransition:
         # No transition sound for closing animation
     
     def update(self, current_time):
-        """Update animation state. Returns True if animation is still running."""
         if not self.is_animating:
             return False
         
@@ -109,7 +103,6 @@ class CurtainTransition:
         return True
     
     def render(self, screen):
-        """Render the current animation frame."""
         frame = None
         
         if self.animation_type == "opening":
@@ -172,5 +165,4 @@ class CurtainTransition:
         screen.blit(scaled_frame, (0, 0))
     
     def is_animation_complete(self):
-        """Check if the current animation has finished."""
         return not self.is_animating
