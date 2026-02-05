@@ -15,30 +15,74 @@ Game: This class keeps track of the score and starts each game.
 ## Inspiration and Concept
 The inspiration to our game comes mostly from a Microgame collection from the game "Wario Ware", where players must react quickly to very short and simple tasks ranging from 2 to 5 seconds. We choose this idea because short games it makes it easy to replay the tasks for memorizing vocabulary and small scope grammar. This keeps users motivated to keep on learning by playing the games.
 
+In our game the player can choose between 3 different gamemodes, which resemble the 3 tasks given from the course.
+Each gamemode lets the player play various tiny games, that are played around 5 second each. The player needs to solve questions and earn points in gamemode 1 to unlock gamemode 2. The same condition applies for gamemode 3.
+
+### Gamemode 1: Vocabulary
+This gamemode's aim was to teach the player a small vocabulary of 7 urdu words and their category as an agentive/non-agentive word. For these two goals we have separate prompts for the games, which switchs up randomly.
+
+#### Task 1
+The first task of the vocabulary gamemode was to teach the player 7 urdu vocabularies. For that we ask the player a word and the player has to choose the correct translation out of 4 displayed options. The games give hints at what the correct option is, so that players who don't know the answer are able to learn so.
+
+#### Task 2
+The second task of of the vocabulary gamemode prompts the player to choose between "Yes" and "No" to decide whether a verb is agentive or non-agentive.
+
+### Gamemode 2: Grammar
+In the grammar gamemode the player is asked to pick a word out of 4 options, that fits with the displayed word in order to make sense.
+
+### Gamemode 3: Test
+The last gamemode is a test, consisting of a round based game where the player has to defeat an enemy. This includes some of the other microgames. The player has to choose right options from the questions in gamemode 1 and 2 in order to progress in this mode and beat the enemy. Each won round lowers the enemies HP while losing just one round makes the player loose the entire game. If the player manages to defeat the enemy, they progress to level 2, which increases the enemies HP.
+
+## All the Games:
+
+### Quickie Quiz
+![alt text](DocFiles/QuizAgentive.png.png)
+
+### Hogans Alley
+![alt text](DocFiles/HogansAlley.png)
+
+### Praize or Haze
+
+
+### Dungeon Dilemma
+
+
+![alt text](DocFiles/HogansAlleyOpening.png)
+
+
+
+
 ## What did each of us do?
 
 ### David
+David implemented the games:
 - PraiseOrHaze
-- Boss
-- Fonts
-- Transitions
+- Dungeon Dilemma
+
+Additionally he implemented:
+- Game Fonts
+- Transitions between games
+
 In the beginning i had mny problems with the right scaling of the sprites and getting the, which got much more easily with time and a sort of feeling for the number to use to move sprites around. The main issues was the Main Game logic, escpecially what party of the minigames we could put in the Game class to reuse in the otehr minigames. My biggest encounter was the creating of the Font. I researched and tried quite a while until i got it to work. It scann though the font sprite line for line with the first pixel in the left upper corner as "Background" and ends a symbol once it detect a Background pixel after detecting a not Background pixel. I alligned all symbols to the bottom line, why letters like "g" and "y", which should be below the bottom textline are kind of "levitating" and look a bit weird. Unfortuantly the Font couldn't be used in the menu, because the pygame menu only allows its own and system font, why we used teh 8-Bit Font which suited the best, we thought. Another big problem I run into was crashing during animation, if clicked anything. Escpecially in the Boss game i had many issues with animation crashes or overlaping. But most of these Problems were later solved by putting boolean states during animation, during which the player input was completly blocked. But some errors remained if the PLayer clicks something during a specific moment like in the Boss game during The Boss spwn it resets the game.
 
 ### Pascal
-- This
-- Thas
+![alt text](DocFiles/QuickieQuiz.png)
+![alt text](DocFiles/HogansAlley.png)
+Pascal implemented the games:
+- Quickie Quiz
+- Hogans Alley
+- Zelda Ripoff
+
+Additionally he implemented:
+- Word selection for all games (GameLogic)
+
 
 ## Interesting Codesnippets
 ### Combining dicts
 
-    if len(options_list) == 2:
-        positions = ["left", "right"]
-    else:
-        positions = ["top", "bottom", "left", "right"]
-
-    random.shuffle(positions)
-
     options = dict(zip(positions, options_list))
+
+With the "zip" function we were able to combine lists into a dictionary. This helped us a lot because our fundamental data structure used for the answers and options are dictionaries. Dictionaries have a value and key. Therefore we can always find the key or the value if we only have on od those. This matches perfect for a "question-answer" structure like vocabularies in our case.
 
 
 ### Together
@@ -47,8 +91,3 @@ In the beginning i had mny problems with the right scaling of the sprites and ge
 - very much troubleshooting
 
 ## Documentation
-
-
-
-
-Refactored code: abstract classes: CheckAnswer

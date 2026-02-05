@@ -298,7 +298,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
     
     clock = pygame.time.Clock()
     
-    Games = [ZeldaRipoff.ZeldaRipoff]
+    Games = [PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz, HogansAlley.HogansAlley]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # DO NOT initialize game yet - wait until curtain animation is complete
