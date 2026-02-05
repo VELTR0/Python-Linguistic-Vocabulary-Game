@@ -46,7 +46,6 @@ class PraiseOrHaze(Game):
         self.correct = pygame.image.load(r"Sprites\PraiseOrHaze\Correcto.png").convert_alpha()
         self.wrong = pygame.image.load(r"Sprites\PraiseOrHaze\Wrong.png").convert_alpha()
 
-    # Gamemode 1
     def build_question(self):
         # Gamemode 2: Task 2 (verb-combination rules)
         if self.gamemode == 2:

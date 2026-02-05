@@ -1,8 +1,6 @@
 import pygame
 import random
 from Game import Game
-import HogansAlley
-Games = [HogansAlley.HogansAlley]
 from Boss_Font import BossFont
 from Vocabulary import agentive_verbs, non_agentive_verbs, ambiguous_verbs
 from CurtainTransition import CurtainTransition
@@ -125,7 +123,7 @@ class Boss(Game):
         
         self.load_sprites()
         # Minigame encounter
-        self.minigame_chance = 0.2
+        self.minigame_chance = 0.3
         self.minigame_triggered = False
 
     def load_sprites(self):
@@ -490,7 +488,7 @@ class Boss(Game):
     def questions_or_minigame(self):
         if random.random() < self._get_minigame_chance():
             self.minigame_triggered = True
-            self._start_text_typing(["BeAt Me!"])
+            self._start_text_typing(["bEaT mE!"])
         else:
             self.show_question()
 
@@ -1023,9 +1021,12 @@ class Boss(Game):
     def on_resume(self, paused_duration):
         super().on_resume(paused_duration)
 
+
     def run_minigames(self):
         if not Games:
             return False
+        import HogansAlley
+        Games = [HogansAlley.HogansAlley]
 
         GameClass = random.choice(Games)
         clock = pygame.time.Clock()
