@@ -41,8 +41,8 @@ This game shows the player 2-4 directions (up, down, left, right) as a choice to
 ![alt text](DocFiles/QuickieQuiz.png){width=500}
 
 ### Hogans Alley
-This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Test gamemode this game hides the characters before the selection was made
-![alt text](DocFiles/HogansAlley.png){width=500}
+This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Test gamemode this game hides the characters before the selection was made to prevent hints for the player.
+![alt text](DocFiles/HogansAlley.png){width=500} ![alt text](DocFiles/HogansAlleyTest.png){width=522}
 
 ### Praize or Haze
 This game shows the player a question together with a hint to the corect answer. Below that are the options to chose from with the keybuttons \(\uparrow \) and \(\downarrow \). The selection has to be verified by pressin Enter.
