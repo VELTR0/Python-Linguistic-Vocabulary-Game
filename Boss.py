@@ -9,9 +9,6 @@ from CurtainTransition import CurtainTransition
 
 pygame.init()
 
-# bOSS NAMEN+
-
-
 class Boss(Game):
     ANIMATION_SPEED = 150
     TEXT_TYPING_DURATION = 400

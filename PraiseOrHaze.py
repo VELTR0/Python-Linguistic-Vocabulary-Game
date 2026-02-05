@@ -55,21 +55,26 @@ class PraiseOrHaze(Game):
         # Gamemode 1: Task 1 (vocab meaning)
         correct_urdu, correct_english, options, correct_index, word_type = self.pick_random_words(self.gamemode)
 
-        # ALWAYS ask in URDU
-        question_text = f"{correct_urdu} means..."
-
-        # ALWAYS show ENGLISH as selectable options
         mapped_options = []
+        example_text = ""
+        if word_type == "agentive" and correct_english in ("agentive", "non-agentive"):
+            question_text = f"{correct_urdu} is..."
+            # show the English translation
+            eng = Vocabulary.lightVerbs.get(correct_urdu, "")
+            example_text = f"{correct_urdu} means {eng}" if eng else ""
+        else:
+            question_text = f"{correct_urdu} means..."
         for opt in options:
-            # if opt is Urdu key, map to English
             if opt in Vocabulary.lightVerbs:
                 mapped_options.append(Vocabulary.lightVerbs[opt])
             else:
-                # if opt already English, keep it
                 mapped_options.append(opt)
 
-        self.BombTimer(4)
-        example_text = self.build_example_sentence(correct_urdu)
+        self.BombTimer(5)
+
+        # If example_text hasn't been set above (normal vocab case), build it
+        if not hasattr(self, 'example_text') or not example_text:
+            example_text = self.build_example_sentence(correct_urdu)
 
         return question_text, example_text, mapped_options, correct_index
 
@@ -97,7 +102,6 @@ class PraiseOrHaze(Game):
 
     # Gamemode 2
     def task2_allowed_seconds(self, first_verb: str):
-        """Return a set of verbs that are allowed to combine with first_verb."""
         agentive = set(Vocabulary.agentive_verbs.keys())
         non_agentive = set(Vocabulary.non_agentive_verbs.keys())
         ambiguous = set(getattr(Vocabulary, "ambiguous_verbs", {}).keys())
@@ -169,11 +173,11 @@ class PraiseOrHaze(Game):
             correct_index = option_pairs.index(self.task2_make_option(first, invalid_second))
 
             question_text = f"{first} is not combinable\n"\
-                            f"with ..."
+                            f"with..."
             helper = "Agentive verbs combine\n" \
             "with all verbs - except 'ja'."
 
-        self.BombTimer(4)
+        self.BombTimer(5)
         if self.gamemode == 2:
             self.BombTimer(6)
         return question_text, helper, option_pairs, correct_index
