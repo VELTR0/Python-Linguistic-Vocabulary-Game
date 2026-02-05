@@ -320,7 +320,7 @@ class Boss(Game):
         
         return screens
 
-    # Text "Blocks" until player continues
+    # dialog only continues if player presses anything
     def wrap_text(self, text, max_chars=20, max_lines=2):
         words = text.split()
         lines = []
