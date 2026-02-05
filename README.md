@@ -11,13 +11,23 @@ The inspiration to our game comes mostly from a Microgame collection from the ga
 ## What did each of us do?
 
 ### David
-- This
-- Thas
+- PraiseOrHaze
+- Boss
+- Fonts
+- Transitions
+In the beginning i had mny problems with the right scaling of the sprites and getting the, which got much more easily with time and a sort of feeling for the number to use to move sprites around. The main issues was the Main Game logic, escpecially what party of the minigames we could put in the Game class to reuse in the otehr minigames. My biggest encounter was the creating of the Font. I researched and tried quite a while until i got it to work. It scann though the font sprite line for line with the first pixel in the left upper corner as "Background" and ends a symbol once it detect a Background pixel after detecting a not Background pixel. I alligned all symbols to the bottom line, why letters like "g" and "y", which should be below the bottom textline are kind of "levitating" and look a bit weird. Unfortuantly the Font couldn't be used in the menu, because the pygame menu only allows its own and system font, why we used teh 8-Bit Font which suited the best, we thought.
 
 ### Pascal
 - This
 - Thas
 
+
+### Together
+- The Main logic in Game
+- The Menu
+- very much troubleshooting
+
+## Documentation
 
 
 

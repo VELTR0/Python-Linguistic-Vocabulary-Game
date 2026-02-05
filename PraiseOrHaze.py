@@ -61,11 +61,11 @@ class PraiseOrHaze(Game):
         # ALWAYS show ENGLISH as selectable options
         mapped_options = []
         for opt in options:
-            # If opt is Urdu key -> map to English
+            # if opt is Urdu key, map to English
             if opt in Vocabulary.lightVerbs:
                 mapped_options.append(Vocabulary.lightVerbs[opt])
             else:
-                # If opt already English (or unknown), keep it
+                # if opt already English, keep it
                 mapped_options.append(opt)
 
         self.BombTimer(4)

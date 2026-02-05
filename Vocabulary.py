@@ -33,7 +33,8 @@ agentive_verbs = {
 non_agentive_verbs = {
     "a": "come",
     "ut.h": "rise",
-    "par.": "fall"
+    "par.": "fall",
+    "bEt.h": "sit",
 }
 
 ambiguous_verbs = {
