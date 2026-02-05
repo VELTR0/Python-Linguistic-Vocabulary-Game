@@ -131,8 +131,8 @@ class Boss(Game):
         
         self.load_sprites()
         # BeAt Me feature: chance to spawn a HogansAlley challenge from dialog
-        self.be_at_me_chance = 0.3
-        self.be_at_me_triggered = False
+        self.minigame_chance = 0.3
+        self.minigame_triggered = False
 
     def load_sprites(self):
         self.background = pygame.image.load(r"Sprites\Boss\Background.png").convert()
@@ -341,7 +341,7 @@ class Boss(Game):
             correct_index = all_answers.index(correct_answer)
             
             self.questions.append({
-                "question": f"{urdu_word}!!!",
+                "question": f"{urdu_word} means in english...",
                 "type": "translate",
                 "answers": all_answers,
                 "correct": correct_index
@@ -360,7 +360,7 @@ class Boss(Game):
                 correct_index = 1
             
             self.questions.append({
-                "question": f"{urdu_word}!!!",
+                "question": f"{urdu_word} is ...?",
                 "type": "agentive",
                 "answers": answers,
                 "correct": correct_index
@@ -381,7 +381,7 @@ class Boss(Game):
             correct_index = all_answers.index(correct_urdu)
             
             self.questions.append({
-                "question": f"{english_word}!!!",
+                "question": f"{english_word} means in Urdu...",
                 "type": "translate",
                 "answers": all_answers,
                 "correct": correct_index
@@ -405,17 +405,17 @@ class Boss(Game):
 
     def attempt_start_questions_or_minigame(self):
         """Decide whether to start questions or trigger the HogansAlley minigame.
-        `self.be_at_me_chance` may be a probability in [0,1] or a percentage >1.
+        `self.minigame_chance` may be a probability in [0,1] or a percentage >1.
         This is called every time before showing questions so the chance is
         re-evaluated each time."""
         # normalize chance: treat >1 as percent
-        chance = float(getattr(self, 'be_at_me_chance', 0))
+        chance = float(getattr(self, 'minigame_chance', 0))
         if chance > 1.0:
             chance = chance / 100.0
 
         if random.random() < chance:
             # Trigger a transient BeAt Me! prompt (do not modify dialog_screens)
-            self.be_at_me_triggered = True
+            self.minigame_triggered = True
             self.current_text_lines = ["BeAt Me!"]
             self.text_display_active = True
             self.text_typing_active = True
@@ -693,7 +693,7 @@ class Boss(Game):
                 if self.win_active:
                     box_x = text_rect.left
                     box_y = text_rect.top
-                    win_text = self.boss_font.render(f"You beat {self.boss_name}", color=(255, 255, 255), scale=4.5)
+                    win_text = self.boss_font.render(f"You beat {self.boss_name}!", color=(255, 255, 255), scale=4.5)
                     self.screen.blit(win_text, (box_x + 50, box_y + 35))
                 elif self.lose_active:
                     box_x = text_rect.left
@@ -742,11 +742,11 @@ class Boss(Game):
                             self.screen.blit(line_text, (box_x + 50, box_y + 35 + i * dialog_line_spacing))
                 # If we are waiting after a hit, show a prompt
                 if getattr(self, 'lose_waiting_for_input', False):
-                    prompt = self.boss_font.render("Press SPACE to continue", color=(255, 255, 255), scale=3.0)
+                    prompt = self.boss_font.render("Press any Key to continue", color=(255, 255, 255), scale=3.0)
                     self.screen.blit(prompt, (box_x + 50, box_y + 150))
         
         # question and answers
-        if self.current_question and self.text_image and not self.win_active:
+        if self.current_question and self.text_image and not self.win_active and not self.lose_active:
             text_height = self.text_image.get_height()
             if self.text_current_width > 0:
                 scaled_text = pygame.transform.scale(self.text_image, (int(self.text_current_width), text_height))
@@ -807,13 +807,13 @@ class Boss(Game):
         else:
             # Decide whether to trigger a HogansAlley 'BeAt Me!' challenge
             # Normalize chance: allow either a probability in [0,1] or a percentage >1
-            chance = float(getattr(self, 'be_at_me_chance', 0))
+            chance = float(getattr(self, 'minigame_chance', 0))
             if chance > 1.0:
                 chance = chance / 100.0
 
             if random.random() < chance:
                 # Show a transient "BeAt Me!" screen (do not modify dialog_screens list)
-                self.be_at_me_triggered = True
+                self.minigame_triggered = True
                 self.current_text_lines = ["BeAt Me!"]
                 self.waiting_for_input = False
                 self.text_typing_active = True
@@ -840,34 +840,19 @@ class Boss(Game):
             return
         
         for event in events:
-            # If we are waiting after a loss, only accept SPACE/RETURN to proceed to curtain
+            # If we are waiting after a loss, accept any key to proceed to curtain
             if getattr(self, 'lose_waiting_for_input', False) and event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                    self.lose_waiting_for_input = False
-                    self.lose_active = False
-                    self.shake_offset_x = 0
-                    self.shake_offset_y = 0
-                    self.curtain_closing = True
-                    try:
-                        pygame.mixer.music.stop()
-                    except Exception:
-                        pass
-                    self.curtain.start_closing_animation(self.screen, is_success=False)
-                    return
-            # If we are waiting after a loss, only accept SPACE/RETURN to proceed to curtain
-            if getattr(self, 'lose_waiting_for_input', False) and event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                    self.lose_waiting_for_input = False
-                    self.lose_active = False
-                    self.shake_offset_x = 0
-                    self.shake_offset_y = 0
-                    self.curtain_closing = True
-                    try:
-                        pygame.mixer.music.stop()
-                    except Exception:
-                        pass
-                    self.curtain.start_closing_animation(self.screen, is_success=False)
-                    return
+                self.lose_waiting_for_input = False
+                self.lose_active = False
+                self.shake_offset_x = 0
+                self.shake_offset_y = 0
+                self.curtain_closing = True
+                try:
+                    pygame.mixer.music.stop()
+                except Exception:
+                    pass
+                self.curtain.start_closing_animation(self.screen, is_success=False)
+                return
             if event.type == pygame.KEYDOWN:
                 if self.current_question:
                     if not self.question_waiting:
@@ -976,9 +961,9 @@ class Boss(Game):
                                     self.win_start_time = pygame.time.get_ticks()
                                     # block input when win triggered from post_hit_action
                                     self.block_input_until_reset = True
-                            elif getattr(self, 'be_at_me_triggered', False):
+                            elif getattr(self, 'minigame_triggered', False):
                                 self.text_display_active = False
-                                self.be_at_me_triggered = False
+                                self.minigame_triggered = False
                                 try:
                                     won = self.run_minigames()
                                 except Exception:

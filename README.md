@@ -57,7 +57,7 @@ The last gamemode is a test, consisting of a round based game where the player h
 ### David
 David implemented the games:
 - PraiseOrHaze
-- Dungeon Dilemma
+- Boss
 
 Additionally he implemented:
 - Game Fonts
