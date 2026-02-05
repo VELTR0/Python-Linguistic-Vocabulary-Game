@@ -8,7 +8,7 @@ pygame.init()
 
 
 class QuickieQuiz(Game):
-    DISPLAY_TIME = 1000
+    DISPLAY_TIME = 3000
     ANSWER_DISPLAY_TIME = 1000
     
     def __init__(self, gamemode=1, playerName="Player"):
@@ -207,7 +207,7 @@ class QuickieQuiz(Game):
         if self.show_urdu_display:
             display_word = self.correct_urdu if self.current_word_type == "english" else self.correct_english
             text = f" {display_word}"
-            large_surface = self.font_options.render((self.playerName + " is " + text + "..."), color=(255, 255, 0))
+            large_surface = self.font_options.render((self.playerName + " is " + "..."  + text), color=(255, 255, 0))
             large_surface = pygame.transform.scale_by(large_surface, 5)
             large_rect = large_surface.get_rect(center=(dpad_center[0], dpad_center[1] - 120))
             self.screen.blit(large_surface, large_rect)
