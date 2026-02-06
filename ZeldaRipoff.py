@@ -10,7 +10,7 @@ pygame.init()
 class ZeldaRipoff(Game):
     DISPLAY_TIME = 1500  
     WAIT_TIME = 1000
-    ANSWER_DISPLAY_TIME = 1000  # Wait time after answer before ending game
+    ANSWER_DISPLAY_TIME = 1000
     BOMB_TIMER_SECONDS = 7
 
     class player(object):
