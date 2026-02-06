@@ -6,7 +6,8 @@ from Vocabulary import agentive_verbs, non_agentive_verbs, ambiguous_verbs
 from CurtainTransition import CurtainTransition
 import HogansAlley
 import PraiseOrHaze
-Games = [HogansAlley.HogansAlley, PraiseOrHaze.PraiseOrHaze]
+import ZeldaRipoff
+Games = [HogansAlley.HogansAlley, PraiseOrHaze.PraiseOrHaze, ZeldaRipoff.ZeldaRipoff]
 
 pygame.init()
 

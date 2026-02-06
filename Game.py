@@ -301,7 +301,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName, total_score):
     if gamemode == 3:
         Games = [Boss.Boss]
     else:
-        Games = [ZeldaRipoff.ZeldaRipoff]
+        Games = [ZeldaRipoff.ZeldaRipoff, PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz, HogansAlley.HogansAlley]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
     # apply starting score passed from menu so score persists across games
