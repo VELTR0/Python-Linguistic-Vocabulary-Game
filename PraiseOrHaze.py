@@ -197,11 +197,7 @@ class PraiseOrHaze(Game):
             return ""
 
         if template:
-            try:
                 return template.format(w=urdu_word)
-            except Exception:
-                return template.replace("{w}", urdu_word)
-
         return
 
 

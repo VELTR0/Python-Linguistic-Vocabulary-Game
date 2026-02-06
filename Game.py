@@ -9,10 +9,10 @@ pygame.init()
 correct_sound = pygame.mixer.Sound(r"Sounds/Correct.ogg")
 wrong_sound = pygame.mixer.Sound(r"Sounds/Wrong.ogg")
 class Game:
-    def __init__(self, gamemode=1, num_words=4, playerName="Player"):
+    def __init__(self, gamemode=1, num_words=4, playerName="Player", total_score=0):
         self.gamemode = gamemode
         self.num_words = num_words
-        self.score = 0
+        self.score = total_score
         self.is_running = False
         self.playerName = playerName
         self.game_actually_started = False  # Flag to indicate if the curtain animation is complete
@@ -190,11 +190,9 @@ class Game:
     
     def succ(self):
         self.score += 100
-        print("Score:", self.score)
     
     def fail(self):
-        self.score -= 100
-        print("Score:", self.score)
+        self.score = max(0, self.score - 100)
 
     def load_sprites(self):
         pass
@@ -251,7 +249,7 @@ class Game:
             self.is_running = False
 
 
-def startGame(gamemode, screen, menu, mytheme, playerName):
+def startGame(gamemode, screen, menu, mytheme, playerName, total_score):
     import HogansAlley
     import PraiseOrHaze
     import QuickieQuiz
@@ -291,10 +289,12 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
         pygame.display.set_mode((1024, 768))
         if game_instance is not None:
             game_instance.is_running = False
-    
+
+    pause_score_label = pause_menu.add.label(f'SCORE: {total_score}')
     pause_menu.add.button('Continue', resume_game)
     pause_menu.add.button('Back to Main Menu', quit_to_menu)
     pause_menu.add.button('Exit Game', pygame_menu.events.EXIT)
+
     
     clock = pygame.time.Clock()
     
@@ -304,10 +304,13 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
         Games = [HogansAlley.HogansAlley, PraiseOrHaze.PraiseOrHaze, QuickieQuiz.QuickieQuiz]
     GameClass = random.choice(Games)
     game_instance = GameClass(gamemode, playerName=playerName)
+    # apply starting score passed from menu so score persists across games
+    game_instance.score = int(total_score)
+
     # DO NOT initialize game yet - wait until curtain animation is complete
     
-    total_score = 0
-    last_score = 0
+    total_score = int(total_score)
+    last_score = total_score
     music_start_time = None  # Track when to start music (0.2s after animation complete)
     
     # Start the opening curtain animation
@@ -342,7 +345,7 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
         elif game_state == PLAYING:
             if not game_instance.is_running:
                 total_score = game_instance.score
-                game_instance.game_actually_started = False  # Disables bomb timer during transition
+                game_instance.game_actually_started = False
                 is_success = game_instance.score > last_score
                 last_score = game_instance.score
                 pygame.mixer.music.pause()
@@ -359,6 +362,11 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
                     game_instance.on_pause()
             
             if paused:
+                # update pause menu score display before showing
+                current_score = getattr(game_instance, 'score', None)
+                if current_score is not None:
+                    pause_score_label.set_title(f'SCORE: {current_score}') 
+
                 pause_menu.enable()
                 pause_menu.mainloop(screen, disable_loop=False)
                 pause_menu.disable()
@@ -387,4 +395,4 @@ def startGame(gamemode, screen, menu, mytheme, playerName):
         clock.tick(60)
     
     pygame.mixer.music.stop()
-    return game_running
+    return total_score

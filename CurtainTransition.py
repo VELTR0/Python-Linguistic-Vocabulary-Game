@@ -24,46 +24,43 @@ class CurtainTransition:
         self.load_sprites()
     
     def load_sprites(self):
-        try:
-            # Load closed frames (1-3)
-            for i in range(1, 4):
-                path = rf"Sprites\Übergang\Closed_{i}.png"
-                if os.path.exists(path):
-                    self.closed_frames.append(pygame.image.load(path).convert_alpha())
-            
-            # Load won frames (1-3)
-            for i in range(1, 4):
-                path = rf"Sprites\Übergang\Won_{i}.png"
-                if os.path.exists(path):
-                    self.won_frames.append(pygame.image.load(path).convert_alpha())
-            
-            # Load loose frames (1-3)
-            for i in range(1, 4):
-                path = rf"Sprites\Übergang\Loose_{i}.png"
-                if os.path.exists(path):
-                    self.loose_frames.append(pygame.image.load(path).convert_alpha())
-            
-            # Load open frames (1-10)
-            for i in range(1, 11):
-                path = rf"Sprites\Übergang\Open_{i}.png"
-                if os.path.exists(path):
-                    self.open_frames.append(pygame.image.load(path).convert_alpha())
-            
-            # Load transition sound
-            sound_path = r"Sprites\Übergang\transition.ogg"
-            if os.path.exists(sound_path):
-                self.transition_sound = pygame.mixer.Sound(sound_path)
-            
-            # Load success/failure sounds
-            success_path = r"Sprites\Übergang\Success.ogg"
-            if os.path.exists(success_path):
-                self.success_sound = pygame.mixer.Sound(success_path)
-            
-            failure_path = r"Sprites\Übergang\Failure.ogg"
-            if os.path.exists(failure_path):
-                self.failure_sound = pygame.mixer.Sound(failure_path)
-        except Exception as e:
-            print(f"Error loading curtain sprites: {e}")
+        # Load closed frames (1-3)
+        for i in range(1, 4):
+            path = rf"Sprites\Übergang\Closed_{i}.png"
+            if os.path.exists(path):
+                self.closed_frames.append(pygame.image.load(path).convert_alpha())
+        
+        # Load won frames (1-3)
+        for i in range(1, 4):
+            path = rf"Sprites\Übergang\Won_{i}.png"
+            if os.path.exists(path):
+                self.won_frames.append(pygame.image.load(path).convert_alpha())
+        
+        # Load loose frames (1-3)
+        for i in range(1, 4):
+            path = rf"Sprites\Übergang\Loose_{i}.png"
+            if os.path.exists(path):
+                self.loose_frames.append(pygame.image.load(path).convert_alpha())
+        
+        # Load open frames (1-10)
+        for i in range(1, 11):
+            path = rf"Sprites\Übergang\Open_{i}.png"
+            if os.path.exists(path):
+                self.open_frames.append(pygame.image.load(path).convert_alpha())
+        
+        # Load transition sound
+        sound_path = r"Sprites\Übergang\transition.ogg"
+        if os.path.exists(sound_path):
+            self.transition_sound = pygame.mixer.Sound(sound_path)
+        
+        # Load success/failure sounds
+        success_path = r"Sprites\Übergang\Success.ogg"
+        if os.path.exists(success_path):
+            self.success_sound = pygame.mixer.Sound(success_path)
+        
+        failure_path = r"Sprites\Übergang\Failure.ogg"
+        if os.path.exists(failure_path):
+            self.failure_sound = pygame.mixer.Sound(failure_path)
     
     def start_opening_animation(self, screen, duration_ms=1000):        
         self.screen = screen

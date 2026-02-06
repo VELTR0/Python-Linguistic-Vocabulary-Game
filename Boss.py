@@ -126,7 +126,7 @@ class Boss(Game):
         
         self.load_sprites()
         # Minigame encounter
-        self.minigame_chance = 1
+        self.minigame_chance = 0.3
         self.minigame_triggered = False
 
     def load_sprites(self):
@@ -172,11 +172,8 @@ class Boss(Game):
         self.text_display_progress = 0.0
         self.waiting_for_input = False
         if play_sound and self.texting_sound:
-            try:
-                self.texting_sound.play(-1)
-                self.texting_sound_playing = True
-            except Exception:
-                self.texting_sound_playing = False
+            self.texting_sound.play(-1)
+            self.texting_sound_playing = True
 
     def _show_static_text(self, lines):
         self.current_text_lines = lines
@@ -187,10 +184,7 @@ class Boss(Game):
 
     def _stop_texting_sound(self):
         if self.texting_sound_playing:
-            try:
-                self.texting_sound.stop()
-            except Exception:
-                pass
+            self.texting_sound.stop()
             self.texting_sound_playing = False
 
     def initialize_game(self, screen):
@@ -420,11 +414,8 @@ class Boss(Game):
         total_verbs = list(all_verbs.keys())
         sample_size = min(6, max(1, len(total_verbs)//4))
 
-        for _ in range(sample_size):
-            try:
-                first, second, options, correct_index, mode = self.pick_random_words(gamemode=2)
-            except Exception:
-                continue
+        for r in range(sample_size):
+            first, second, options, correct_index, mode = self.pick_random_words(gamemode=2)
             if mode == "verb_pair":
                 additional.append({
                     "question": f"{first} can be combined with...",
@@ -433,11 +424,8 @@ class Boss(Game):
                     "correct": correct_index
                 })
 
-        for _ in range(sample_size):
-            try:
-                first, valid_second, options, correct_index, mode = self.pick_random_words(gamemode=2)
-            except Exception:
-                continue
+        for r in range(sample_size):
+            first, valid_second, options, correct_index, mode = self.pick_random_words(gamemode=2)
 
 
             make_valid = random.choice([True, False])
@@ -528,11 +516,8 @@ class Boss(Game):
                     self.lose_waiting_for_input = True
                     self.shake_offset_x = 0
                     self.shake_offset_y = 0
-                    try:
-                        pygame.mixer.music.stop()
-                    except Exception:
-                        pass
-        
+                    pygame.mixer.music.stop()
+
         # Curtain animations and logic
         if self.curtain_closing:
             still_animating = self.curtain.update(current_time)
@@ -881,10 +866,7 @@ class Boss(Game):
                 self.shake_offset_x = 0
                 self.shake_offset_y = 0
                 self.curtain_closing = True
-                try:
-                    pygame.mixer.music.stop()
-                except Exception:
-                    pass
+                pygame.mixer.music.stop()
                 self.curtain.start_closing_animation(self.screen, is_success=False)
                 return
             if event.type == pygame.KEYDOWN:
@@ -991,10 +973,7 @@ class Boss(Game):
                             elif getattr(self, "minigame_triggered", False):
                                 self.text_display_active = False
                                 self.minigame_triggered = False
-                                try:
-                                    won = self.run_minigames()
-                                except Exception:
-                                    won = False
+                                won = self.run_minigames()
 
                                 if won:
                                     dmg = 20
@@ -1045,14 +1024,7 @@ class Boss(Game):
                     self.is_running = False
                     return False
 
-            try:
-                game_instance.handle_frame_input(events, current_time)
-            except TypeError:
-                try:
-                    game_instance.handle_frame_input(events)
-                except Exception:
-                    pass
-
+            game_instance.handle_frame_input(events, current_time)
             game_instance.update_frame(current_time)
             pygame.display.flip()
             clock.tick(60)
@@ -1061,16 +1033,10 @@ class Boss(Game):
         won = final_score > start_score
 
         # stop minigame music
-        try:
-            if won:
-                pygame.mixer.music.fadeout(500)
-            else:
-                pygame.mixer.music.stop()
-        except Exception:
-            try:
-                pygame.mixer.music.stop()
-            except Exception:
-                pass
+        if won:
+            pygame.mixer.music.fadeout(500)
+        else:
+            pygame.mixer.music.stop()
 
         return won
 
