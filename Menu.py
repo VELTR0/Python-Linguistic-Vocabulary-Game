@@ -7,7 +7,7 @@ pygame.init()
 
 current_gamemode = 1
 # starting score
-total_score = 10000
+total_score = 0
 def set_gamemode(value, gamemode):
     global current_gamemode
     current_gamemode = gamemode
