@@ -208,7 +208,6 @@ class BossFont:
 
         # Create trimmed surface with same height
         trimmed = pygame.Surface((bbox.w, row_height), pygame.SRCALPHA)
-        # Blit the symbol at the bottom of the row
         bottom_y = row_height - bbox.h
         trimmed.blit(surf, (0, bottom_y), pygame.Rect(bbox.x, bbox.y, bbox.w, bbox.h))
         return trimmed
@@ -218,9 +217,8 @@ class BossFont:
         if bbox.w == 0:
             return surf
 
-        # Trim horizontally and pad vertically to align all symbols to the bottom
+        # Trim horizontally to align all symbols to the bottom
         trimmed = pygame.Surface((bbox.w, surf.get_height()), pygame.SRCALPHA)
-        # Blit at bbox.y to align symbols to the bottom (with padding at top)
         trimmed.blit(surf, (0, 0), pygame.Rect(bbox.x, 0, bbox.w, surf.get_height()))
         return trimmed
 

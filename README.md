@@ -84,8 +84,7 @@ This game is only playable by getting a score of 2000 and starting the "Trial" g
 <img src="DocFiles/Boss.png" width="500" />
 
 ### Menu
-The menu isan edited version of the default menu from the package pygame_menu.
-
+In the meanu a custom font is used by importing a TrueType Font (.ttf) file and a custom "designed" logo inspirated by the original WarioWare Logo. Here you can always go back to from the pause menu by clicking "ESC" to change teh gamemode after you earned enough points.
 
 
 
@@ -101,8 +100,9 @@ David implemented the games:
 Additionally he implemented:
 - Game Fonts
 - Transitions between games
+- Menu design
 
-In the beginning i had mny problems with the right scaling of the sprites and getting the, which got much more easily with time and a sort of feeling for the number to use to move sprites around. Thats why later in the Boss Game I used hardcoded sizes for positioning of sprites while I used screen-sized dependet values for PraiseOrHaze. The main issues was the Main Game logic, escpecially what part of the minigames we could put in the Game class to re-use in the otehr minigames. My biggest encounter was the creating of the Font. I researched and tried quite a while until i got it to work. It scann though the font sprite line for line with the first pixel in the left upper corner as "Background" and ends a symbol once it detect a Background pixel after detecting a not Background pixel. I alligned all symbols to the bottom line, why letters like "g" and "y", which should be below the bottom textline are kind of "levitating" and look a bit weird. Another big problem I run into was crashing during animation, if clicked anything. Escpecially in the Boss game i had many issues with animation crashes or overlaping. But most of these Problems were later solved by putting boolean states during animation, during which the player input was completly blocked. But some errors remained if the PLayer clicks something during a specific moment like in the Boss game during The Boss spwn it resets the game.
+In the beginning i had mny problems with the right scaling of the sprites and getting the, which got much more easily with time and a sort of feeling for the number to use to move sprites around. Thats why later in the Boss Game I used hardcoded sizes for positioning of sprites while I used screen-sized dependet values for PraiseOrHaze. The main issues was the Main Game logic, escpecially what part of the minigames we could put in the Game class to re-use in the otehr minigames. My biggest encounter was the creating of the Font. I researched and tried quite a while until i got it to work. It scann though the font sprite line for line with the first pixel in the left upper corner as "Background" and ends a symbol once it detect a Background pixel after detecting a not Background pixel. I alligned all symbols to the bottom line, why letters like "g" and "y", which should be below the bottom textline are kind of "levitating" and look a bit weird. Later while working on the Menu design I found out that I could have just downloaded or create a .ttf file for everything, because the pygame_menu can only use these and not my Spritefont created Fonts. Another big problem I run into was crashing during animation, if clicked anything. Escpecially in the Boss game i had many issues with animation crashes or overlaping. But most of these Problems were later solved by putting boolean states during animation, during which the player input was completly blocked. But some errors remained if the PLayer clicks something during a specific moment like in the Boss game during The Boss spwn it resets the game.
 
 ### Pascal
 Pascal implemented the games:
@@ -112,6 +112,11 @@ Pascal implemented the games:
 
 Additionally he implemented:
 - Word selection for all games (GameLogic)
+
+### Together
+- The Main logic in Game
+- The Menu
+- very much troubleshooting
 
 
 ## Interesting Codesnippets
@@ -163,11 +168,5 @@ This is our Vocabulary file where we defined the possible classes and translatio
     ambiguous_verbs = {
         "ja": "go"
     }
-
-
-### Together
-- The Main logic in Game
-- The Menu
-- very much troubleshooting
 
 ## Documentation
