@@ -11,6 +11,33 @@ Game: This class keeps track of the score and starts each game.
 - HogansAlley
 - QuickieQuiz
 - PraiseOrHaze
+- Zelda
+- Boss
+
+
+```mermaid
+classDiagram
+  class Menu{
+    -total_score: int
+    -current_gamemode: int
+  }
+  class Game{
+    -gamemode: int
+    -num_words: int
+    -score: int
+    -playerName: string
+    -is_running: bool
+    +loadbomb()
+    +BomgTimer()
+    +bomb_logic()
+    +pick_random_words(gamemode:int)
+  }
+  class Game 1
+  class Game 1
+  Menu --> Game
+  Game --> Game 1
+  Game --> Game 2
+```
 
 ## Inspiration and Concept
 The inspiration to our game comes mostly from a Microgame collection from the game "Wario Ware", where players must react quickly to very short and simple tasks ranging from 2 to 5 seconds. We choose this idea because short games it makes it easy to replay the tasks for memorizing vocabulary and small scope grammar. This keeps users motivated to keep on learning by playing the games.
