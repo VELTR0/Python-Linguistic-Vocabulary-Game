@@ -44,6 +44,10 @@ This game shows the player 2-4 directions (up, down, left, right) as a choice to
 This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Test gamemode this game hides the characters before the selection was made to prevent hints for the player.
 <img src="DocFiles/HogansAlley.png" width="500" /> <img src="DocFiles/HogansAlleyTest.png" width="522" />
 
+### Zelda
+In this game the player is able to walk around with the keybuttons \(\leftarrow \) or \(\rightarrow \). For each possible answer, one cave will appear. If the players walks into a cave, the corresponding word will be selected as answer.
+<img src="DocFiles/Zelda.png" width="500" />
+
 ### Praize or Haze
 This game shows the player a question together with a hint to the corect answer. Below that are the options to chose from with the keybuttons \(\uparrow \) and \(\downarrow \). The selection has to be verified by pressin Enter. The hints for the correct answer are individually created for each single answer possibility.
 <img src="DocFiles/PraiseOrHaze.png" width="500" />
@@ -77,7 +81,7 @@ In the beginning i had mny problems with the right scaling of the sprites and ge
 Pascal implemented the games:
 - Quickie Quiz
 - Hogans Alley
-- Zelda Ripoff
+- Zelda
 
 Additionally he implemented:
 - Word selection for all games (GameLogic)
