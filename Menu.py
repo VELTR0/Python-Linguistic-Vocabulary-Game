@@ -62,9 +62,9 @@ def start_mode(mode):
         total_score = returned
     menu.enable()
 
-vocab_button = menu.add.button('Vocabulary', lambda m=1: start_mode(m))
-grammer_button = menu.add.button('Grammar', lambda m=2: start_mode(m))
-test_button = menu.add.button('Test', lambda m=3: start_mode(m))
+vocab_button = menu.add.button('Vocabulary', lambda mode=1: start_mode(mode))
+grammer_button = menu.add.button('Grammar', lambda mode=2: start_mode(mode))
+test_button = menu.add.button('Test', lambda mode=3: start_mode(mode))
 if total_score < 1000:
     grammer_button.set_title('Grammer (1000 points to unlock)')
 if total_score < 2000:
