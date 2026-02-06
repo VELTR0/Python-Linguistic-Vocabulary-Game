@@ -30,8 +30,8 @@ The second task of of the vocabulary gamemode prompts the player to choose betwe
 ### Gamemode 2: Grammar
 In the grammar gamemode the player is asked to pick a word out of 4 options, that fits with the displayed word in order to make sense.
 
-### Gamemode 3: Test
-The last gamemode is a test, consisting of a round based game where the player has to defeat an enemy. This includes some of the other microgames. The player has to choose right options from the questions in gamemode 1 and 2 in order to progress in this mode and beat the enemy. Each won round lowers the enemies HP while losing just one round makes the player loose the entire game. If the player manages to defeat the enemy, they progress to level 2, which increases the enemies HP.
+### Gamemode 3: Trial
+The last gamemode is a test, consisting of a round based game where the player has to defeat an enemy. This includes some of the other microgames. The player has to choose right options from the questions in gamemode 1 and 2 but without their tips, in order to progress in this mode and beat the enemy. Each won round lowers the enemies HP while losing just one round makes the player loose the entire game. If the player manages to defeat the enemy, they progress to level 2, which increases the enemies HP.
 
 ## All the Scenes:
 All games ask the player with a prompted question to choose between 2-4 options.
@@ -41,7 +41,7 @@ This game shows the player 2-4 directions (up, down, left, right) as a choice to
 <img src="DocFiles/QuickieQuiz.png" width="500" />
 
 ### Hogans Alley
-This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Test gamemode this game hides the characters before the selection was made to prevent hints for the player.
+This game gives the player options chosen from left to right and can have as many or less options are possible because it's scalable over the screenwidth. Each option is displayed as a person, whereas the correct option is a thug, while all wrong options are women or police officers. The goal is to select the thug by pressing the keybuttons \(\leftarrow \) or \(\rightarrow \) to select a person. Pressing the keybutton Enter shoots the thug, representing the correct answer to the question. For the Trial gamemode this game hides the characters before the selection was made to prevent hints for the player.
 <img src="DocFiles/HogansAlley.png" width="500" /> <img src="DocFiles/HogansAlleyTest.png" width="522" />
 
 ### Zelda
@@ -53,7 +53,7 @@ This game shows the player a question together with a hint to the corect answer.
 <img src="DocFiles/PraiseOrHaze.png" width="500" />
 
 ### Boss
-This game is only playable by starting the "Test" gamemode. The player encounters different enemies. Each enemy has a certain amount of HP. The goal is to reduce the enemy's HP to 0. This can be done by answering the prompted questions in the chat correctly. The answers can be picked by pressing the keybuttons \(\leftarrow \), \(\uparrow \), \(\downarrow \) or \(\rightarrow \) and pressing the Enter button.
+This game is only playable by getting a score of 2000 and starting the "Trial" gamemode. The player encounters different enemies. Each enemy has a certain amount of HP. The goal is to reduce the enemy's HP to 0. This can be done by answering the prompted questions in the chat correctly. The answers can be picked by pressing the keybuttons \(\leftarrow \), \(\uparrow \), \(\downarrow \) or \(\rightarrow \) and pressing the Enter button.
 <img src="DocFiles/Boss.png" width="500" />
 
 ### Menu

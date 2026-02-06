@@ -64,11 +64,11 @@ def start_mode(mode):
 
 vocab_button = menu.add.button('Vocabulary', lambda mode=1: start_mode(mode))
 grammer_button = menu.add.button('Grammar', lambda mode=2: start_mode(mode))
-test_button = menu.add.button('Test', lambda mode=3: start_mode(mode))
+trial_button = menu.add.button('trial', lambda mode=3: start_mode(mode))
 if total_score < 1000:
     grammer_button.set_title('Grammer (1000 points to unlock)')
 if total_score < 2000:
-    test_button.set_title('Test (2000 points to unlock)')
+    trial_button.set_title('Trial (2000 points to unlock)')
 
 menu.add.button('Quit', pygame_menu.events.EXIT)
 
